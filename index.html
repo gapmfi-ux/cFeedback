@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback Form</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideUp 0.5s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #2d3748;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            color: #718096;
+            font-size: 16px;
+        }
+        
+        .qr-section {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .qr-placeholder {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 12px;
+            background: white;
+            border: 2px dashed #cbd5e0;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #a0aec0;
+        }
+        
+        .qr-placeholder svg {
+            width: 100px;
+            height: 100px;
+        }
+        
+        .qr-label {
+            color: #2d3748;
+            font-weight: 500;
+            font-size: 16px;
+        }
+        
+        .qr-sub {
+            color: #718096;
+            font-size: 14px;
+        }
+        
+        .instructions {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0 30px;
+            gap: 10px;
+        }
+        
+        .step {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 6px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .step-text {
+            font-size: 13px;
+            color: #4a5568;
+        }
+        
+        .form-group {
+            margin-bottom: 24px;
+        }
+        
+        .form-group label {
+            display: block;
+            color: #2d3748;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+        
+        .rating-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .rating-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        
+        .rating-option input[type="radio"] {
+            display: none;
+        }
+        
+        .rating-circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 3px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 600;
+            color: #4a5568;
+            transition: all 0.3s ease;
+            background: white;
+            position: relative;
+        }
+        
+        .rating-option input[type="radio"]:checked + .rating-circle {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .rating-option input[type="radio"]:checked + .rating-circle::after {
+            content: '✓';
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #48bb78;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+        }
+        
+        .rating-option:hover .rating-circle {
+            border-color: #667eea;
+            transform: scale(1.05);
+        }
+        
+        .rating-label {
+            font-size: 11px;
+            color: #718096;
+            text-align: center;
+            min-height: 16px;
+        }
+        
+        textarea, input[type="text"], input[type="email"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+            font-family: inherit;
+            background: #f7fafc;
+        }
+        
+        textarea:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .optional {
+            color: #a0aec0;
+            font-size: 12px;
+            font-weight: normal;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+        
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #a0aec0;
+            font-size: 14px;
+        }
+        
+        .success-message {
+            background: #48bb78;
+            color: white;
+            padding: 16px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 20px;
+            animation: fadeIn 0.5s;
+        }
+        
+        .error-message {
+            background: #fc8181;
+            color: white;
+            padding: 16px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 20px;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .instructions {
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .rating-group {
+                gap: 8px;
+            }
+            
+            .rating-circle {
+                width: 40px;
+                height: 40px;
+                font-size: 15px;
+            }
+            
+            .rating-option input[type="radio"]:checked + .rating-circle::after {
+                width: 16px;
+                height: 16px;
+                font-size: 10px;
+                top: -6px;
+                right: -6px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>⭐ WE VALUE YOUR FEEDBACK!</h1>
+            <p>Rate our services and help us improve</p>
+        </div>
+        
+        <!-- QR Code Section -->
+        <div class="qr-section">
+            <div class="qr-placeholder" id="qrContainer">
+                <svg viewBox="0 0 100 100">
+                    <rect width="100" height="100" fill="white"/>
+                    <rect x="10" y="10" width="20" height="20" fill="black"/>
+                    <rect x="40" y="10" width="40" height="20" fill="black"/>
+                    <rect x="70" y="10" width="20" height="20" fill="black"/>
+                    <rect x="10" y="40" width="20" height="40" fill="black"/>
+                    <rect x="70" y="40" width="20" height="40" fill="black"/>
+                    <rect x="10" y="70" width="20" height="20" fill="black"/>
+                    <rect x="40" y="70" width="40" height="20" fill="black"/>
+                    <rect x="70" y="70" width="20" height="20" fill="black"/>
+                    <rect x="45" y="45" width="10" height="10" fill="black"/>
+                    <rect x="30" y="30" width="5" height="5" fill="black"/>
+                    <rect x="65" y="30" width="5" height="5" fill="black"/>
+                    <rect x="30" y="65" width="5" height="5" fill="black"/>
+                    <rect x="55" y="30" width="5" height="5" fill="black"/>
+                    <rect x="30" y="55" width="5" height="5" fill="black"/>
+                </svg>
+            </div>
+            <div class="qr-label">📱 SCAN TO SHARE YOUR FEEDBACK</div>
+            <div class="qr-sub">or complete the form below</div>
+        </div>
+        
+        <!-- Instructions -->
+        <div class="instructions">
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-text">Scan QR<br>Code</div>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-text">Complete<br>Form</div>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-text">Submit<br>Feedback</div>
+            </div>
+        </div>
+        
+        <!-- Feedback Form -->
+        <form id="feedbackForm">
+            <!-- Overall Satisfaction -->
+            <div class="form-group">
+                <label>Overall Satisfaction</label>
+                <div class="rating-group" data-rating="overallSatisfaction">
+                    <label class="rating-option">
+                        <input type="radio" name="overallSatisfaction" value="1">
+                        <span class="rating-circle">1</span>
+                        <span class="rating-label">Poor</span>
+                    </label>
+                    <label class="rating-option">
+                        <input type="radio" name="overallSatisfaction" value="2">
+                        <span class="rating-circle">2</span>
+                        <span class="rating-label">Fair</span>
+                    </label>
+                    <label class="rating-option">
+                        <input type="radio" name="overallSatisfaction" value="3">
+                        <span class="rating-circle">3</span>
+                        <span class="rating-label">Good</span>
+                    </label>
+                    <label class="rating-option">
+                        <input type="radio" name="overallSatisfaction" value="4">
+                        <span class="rating-circle">4</span>
+                        <span class="rating-label">Very Good</span>
+                    </label>
+                    <label class="rating-option">
+                        <input type="radio" name="overallSatisfaction" value="5">
+                        <span class="rating-circle">5</span>
+                        <span class="rating-label">Excellent</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Quality of Service -->
+            <div class="form-group">
+                <label>Quality of Service</label>
+                <div class="rating-group" data-rating="qualityOfService">
+                    <label class="rating-option">
+                        <input type="radio" name="qualityOfService" value="1">
+                        <span class="rating-circle">1</span>
+                        <span class="rating-label">Poor</span>
+                    </label>
+                    <label class="rating-option">
+                        <input type="radio" name="qualityOfService" value="2">
+                        <span class="rating-circle">2</span>
+                        <span class="rating-label">Fair</span>
+                    </label>
+                    <label class="rating-option">
+                        <input type="radio" name="qualityOfService" value="3">
+                        <span class="rating-circle">3</span>
+                        <span class="rating-label">Good</span>
+                    </label>
+                    <label class="rating-option">
+                        <input type="radio" name="qualityOfService" value="4">
+                        <span class="rating-circle">4</span>
+                        <span class="rating-label">Very Good</span>
+                    </label>
+                    <label class="rating-option">
+                        <input type="radio" name="qualityOfService" value="5">
+                        <span class="rating-circle">5</span>
+                        <span class="rating-label">Excellent</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Timeliness -->
+            <div class="form-group">
+                <label>Timeliness</label>
+                <div class="rating-group" data-rating="timeliness">
+                    <label class="rating-option">
+                        <input type="radio" name="timeliness" value="1">
+                        <span class="rating-circle">1</span>
+                        <span class="rating-label">Poor</span>
+                    </label>
+                    <label class="rating-option">
+                        <input type="radio" name="timeliness" value="2">
+                        <span class="rating-circle">2</span>
+                        <span class="rating-label">Fair</span>
+                    </label>
+                    <label class="rating-option">
+                        <input type="radio" name="timeliness" value="3">
+                        <span class="rating-circle">3</span>
+                        <span class="rating-label">Good</span>
+                    </label>
+                    <label class="rating-option">
+                        <input type="radio" name="timeliness" value="4">
+                        <span class="rating-circle">4</span>
+                        <span class="rating-label">Very Good</span>
+                    </label>
+                    <label class="rating-option">
+                        <input type="radio" name="timeliness" value="5">
+                        <span class="rating-circle">5</span>
+                        <span class="rating-label">Excellent</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Staff Friendliness -->
+            <div class="form-group">
+                <label>Staff Friendliness</label>
+                <div class="rating-group" data-rating="staffFriendliness">
+                    <label class="rating-option">
+                        <input type="radio" name="staffFriendliness" value="1">
+                        <span class="rating-circle">1</span>
+                        <span class="rating-label">Poor</span>
+                    </label>
+                    <label class="rating-option">
+                        <input type="radio" name="staffFriendliness" value="2">
+                        <span class="rating-circle">2</span>
+                        <span class="rating-label">Fair</span>
+                    </label>
+                    <label class="rating-option">
+                        <input type="radio" name="staffFriendliness" value="3">
+                        <span class="rating-circle">3</span>
+                        <span class="rating-label">Good</span>
+                    </label>
+                    <label class="rating-option">
+                        <input type="radio" name="staffFriendliness" value="4">
+                        <span class="rating-circle">4</span>
+                        <span class="rating-label">Very Good</span>
+                    </label>
+                    <label class="rating-option">
+                        <input type="radio" name="staffFriendliness" value="5">
+                        <span class="rating-circle">5</span>
+                        <span class="rating-label">Excellent</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Additional Comments -->
+            <div class="form-group">
+                <label>Additional Comments</label>
+                <textarea id="additionalComments" placeholder="Tell us more about your experience..."></textarea>
+            </div>
+            
+            <!-- Optional Fields -->
+            <div class="form-group">
+                <label>Name <span class="optional">(optional)</span></label>
+                <input type="text" id="name" placeholder="Your name">
+            </div>
+            
+            <div class="form-group">
+                <label>Email <span class="optional">(optional)</span></label>
+                <input type="email" id="email" placeholder="your@email.com">
+            </div>
+            
+            <button type="submit" class="submit-btn" id="submitBtn">Submit Feedback</button>
+        </form>
+        
+        <div id="messageContainer"></div>
+        
+        <div class="footer">
+            Thank you for helping us serve you better!
+        </div>
+    </div>
+    
+    <script>
+        // Replace with your Google Apps Script Web App URL
+        const SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+        
+        // Form submission
+        document.getElementById('feedbackForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const messageContainer = document.getElementById('messageContainer');
+            
+            // Get all ratings from radio buttons
+            const ratings = {
+                overallSatisfaction: document.querySelector('input[name="overallSatisfaction"]:checked'),
+                qualityOfService: document.querySelector('input[name="qualityOfService"]:checked'),
+                timeliness: document.querySelector('input[name="timeliness"]:checked'),
+                staffFriendliness: document.querySelector('input[name="staffFriendliness"]:checked')
+            };
+            
+            // Check if all ratings are filled
+            const allRated = Object.values(ratings).every(r => r !== null);
+            if (!allRated) {
+                messageContainer.innerHTML = `
+                    <div class="error-message">
+                        Please rate all categories before submitting.
+                    </div>
+                `;
+                return;
+            }
+            
+            // Collect form data
+            const formData = {
+                overallSatisfaction: parseInt(ratings.overallSatisfaction.value),
+                qualityOfService: parseInt(ratings.qualityOfService.value),
+                timeliness: parseInt(ratings.timeliness.value),
+                staffFriendliness: parseInt(ratings.staffFriendliness.value),
+                additionalComments: document.getElementById('additionalComments').value,
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value
+            };
+            
+            // Disable submit button
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+            
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    messageContainer.innerHTML = `
+                        <div class="success-message">
+                            ✅ Thank you! Your feedback has been submitted successfully.
+                        </div>
+                    `;
+                    this.reset();
+                } else {
+                    throw new Error(result.error || 'Submission failed');
+                }
+            } catch (error) {
+                messageContainer.innerHTML = `
+                    <div class="error-message">
+                        ❌ Sorry, there was an error submitting your feedback. Please try again.
+                    </div>
+                `;
+                console.error('Error:', error);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Feedback';
+            }
+        });
+        
+        // Generate QR Code
+        // Uncomment to add real QR code
+        /*
+        const qrImage = document.createElement('img');
+        qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.href)}`;
+        qrImage.style.width = '150px';
+        qrImage.style.height = '150px';
+        document.getElementById('qrContainer').innerHTML = '';
+        document.getElementById('qrContainer').appendChild(qrImage);
+        */
+    </script>
+</body>
+</html>
