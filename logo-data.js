@@ -10,5 +10,5 @@ const LOGO_DATA = {
     mimeType: 'image/jpeg'
 };
 
-// Make it globally available
+// Make it globally available 
 window.LOGO_DATA = LOGO_DATA;
