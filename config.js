@@ -1,4 +1,4 @@
-// Configuration file for the feedback form
+// Configuration file for the feedback form 
 const CONFIG = {
     // Google Apps Script Web App URL
     SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzJ1tOsTZ23rLudil3pLqBBlIR2KCyEUfU2VU6dWJQXJ2vnZgio3ck2dz3c26YpxFPdaQ/exec',
