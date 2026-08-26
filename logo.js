@@ -4,32 +4,71 @@ document.addEventListener('DOMContentLoaded', function() {
     loadLogo();
     
     // Generate QR Code (optional - uncomment to enable)
-    generateQRCode();
+    // generateQRCode();
 });
 
 
 function loadLogo() {
     const logoImage = document.getElementById('logoImage');
-    if (logoImage && window.LOGO_DATA) {
-        // Set the image source using Base64 data
-        logoImage.src = `data:${LOGO_DATA.mimeType};base64,${LOGO_DATA.base64}`;
-        
-        // Handle image load error - fallback to file path if available
-        logoImage.addEventListener('error', function() {
-            console.warn('Base64 logo failed to load, trying file path...');
-            if (LOGO_DATA.filePath) {
-                this.src = LOGO_DATA.filePath;
-            }
-            
-            // If still failing, hide and show text-only
-            this.addEventListener('error', function() {
-                this.style.display = 'none';
-                console.warn('Logo image failed to load. Please check the image data.');
-            });
-        });
-    } else {
-        console.warn('Logo data not found. Please ensure logo-data.js is loaded.');
+
+    // If no image element, nothing to do
+    if (!logoImage) {
+        console.warn('No #logoImage element found in DOM.');
+        return;
     }
+
+    // Validate LOGO_DATA exists and has base64
+    if (window.LOGO_DATA && typeof window.LOGO_DATA.base64 === 'string' && window.LOGO_DATA.base64.length > 40) {
+        const mime = window.LOGO_DATA.mimeType || 'image/png';
+        const dataUri = `data:${mime};base64,${window.LOGO_DATA.base64}`;
+
+        // Use onload/onerror to detect valid image
+        const testImg = new Image();
+        let settled = false;
+
+        testImg.onload = function() {
+            if (settled) return;
+            settled = true;
+            logoImage.src = dataUri;
+            logoImage.style.display = ''; // ensure visible
+        };
+
+        testImg.onerror = function() {
+            if (settled) return;
+            settled = true;
+            console.warn('Base64 logo failed to load or is invalid. Showing text-only logo fallback.');
+            // Fallback: show text-only logo (no file fallback to avoid 404 spam)
+            showTextLogo(logoImage);
+        };
+
+        // Trigger load attempt
+        testImg.src = dataUri;
+    } else {
+        console.warn('Logo data not found or invalid. Showing text-only logo fallback.');
+        showTextLogo(logoImage);
+    }
+}
+
+function showTextLogo(imgElement) {
+    // Hide the failed img element and replace with a text node so UI still shows branding
+    imgElement.style.display = 'none';
+
+    const parent = imgElement.parentNode;
+    if (!parent) return;
+
+    // Avoid adding multiple fallback spans
+    if (parent.querySelector('.logo-text')) return;
+
+    const span = document.createElement('div');
+    span.className = 'logo-text';
+    span.textContent = 'GHP Microfinance';
+    span.setAttribute('aria-hidden', 'true');
+    span.style.fontWeight = '700';
+    span.style.fontSize = '18px';
+    span.style.color = '#2d3748';
+    span.style.textAlign = 'center';
+    span.style.marginBottom = '8px';
+    parent.insertBefore(span, imgElement);
 }
 
 /**
@@ -58,11 +97,14 @@ function generateQRCode() {
  * @param {string} base64Data - Base64 encoded image data
  * @param {string} mimeType - MIME type of the image (optional)
  */
-function updateLogo(base64Data, mimeType = 'image/jpeg') {
+function updateLogo(base64Data, mimeType = 'image/png') {
     const logoImage = document.getElementById('logoImage');
-    if (logoImage) {
-        logoImage.src = `data:${mimeType};base64,${base64Data}`;
+    if (!logoImage) return;
+    if (!base64Data || base64Data.length < 40) {
+        console.warn('updateLogo called with invalid base64Data.');
+        return;
     }
+    logoImage.src = `data:${mimeType};base64,${base64Data}`;
 }
 
 // Export functions for use in other scripts
