@@ -10,6 +10,9 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
+            <!-- Logo (inserted here so logo.js has a target) -->
+            <img id="logoImage" alt="GHP Microfinance logo" class="logo" />
+
             <h1>⭐ WE VALUE YOUR FEEDBACK!</h1>
             <p>Rate our services and help us improve</p>
         </div>
@@ -211,7 +214,11 @@
             Thank you for helping us serve you better!
         </div>
     </div>
-    
+
+    <!-- logo data and loader (must be before main.js so main can rely on logo if needed) -->
+    <script src="logo-data.js"></script>
+    <script src="logo.js"></script>
+
     <script src="config.js"></script>
     <script src="main.js"></script>
 </body>
