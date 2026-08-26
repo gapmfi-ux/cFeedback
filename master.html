@@ -6,6 +6,15 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="styles.css">
   <style>
+    /* Container expanded for desktop monitoring */
+    .container {
+      max-width: 1100px;  /* increased width for desktop review */
+      width: 95%;
+      margin: 24px auto;
+      padding: 26px;
+      min-height: 600px;  /* longer page area */
+    }
+
     /* Page-specific */
     .top-controls { display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; }
     .kpi-row { display:flex; gap:12px; align-items:stretch; flex-wrap:wrap; }
@@ -26,26 +35,43 @@
     .actions button { margin-right:6px; }
     .search-row { display:flex; gap:8px; align-items:center; margin-top:10px; }
     .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.4); display:none; align-items:center; justify-content:center; z-index:9999; }
-    .modal { background:white; padding:18px; border-radius:10px; max-width:720px; width:92%; max-height:80vh; overflow:auto; box-shadow:0 20px 60px rgba(0,0,0,0.25); }
+    .modal { background:white; padding:18px; border-radius:10px; max-width:840px; width:92%; max-height:80vh; overflow:auto; box-shadow:0 20px 60px rgba(0,0,0,0.25); }
     .modal h3 { margin-top:0; }
     .right { text-align:right; }
-    .logo-inline { width:120px; height:auto; display:block; margin:0 auto 12px; }
+    .logo-inline { width:140px; height:auto; display:block; margin:0 auto 12px; }
     .muted { color:#94a3b8; font-size:13px; }
     .controls .btn { padding:8px 12px; border-radius:8px; border:none; cursor:pointer; background:#1a237e; color:white; font-weight:600; }
     .controls .btn.secondary { background:#edf2ff; color:#1a237e; border:1px solid #cbd5e0; }
+
+    /* Service averages panel */
+    .service-averages { display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; }
+    .service-card { background:#fff; border:1px solid #eef2f7; padding:12px; border-radius:8px; min-width:220px; flex:1 1 220px; }
+    .service-card .title { font-weight:700; color:#334155; margin-bottom:6px; }
+    .bar-bg { height:12px; background:#eef2f7; border-radius:999px; overflow:hidden; }
+    .bar-fill { height:12px; background:linear-gradient(90deg,#3b82f6,#10b981); width:0%; border-radius:999px; }
+
+    /* Desktop-only: wider table text */
+    @media (min-width: 900px) {
+      table.feedbacks th, table.feedbacks td { padding:12px; font-size:15px; }
+    }
+
+    /* Slight tweaks for smaller desktops */
+    @media (max-width: 900px) {
+      .container { padding:20px; }
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header" style="text-align:center;">
-      <!-- Logo (logo-data.js + logo.js will set this) -->
+      <!-- Logo -->
       <img id="logoImage" alt="GHP Microfinance logo" class="logo-inline" />
       <h1 style="margin:6px 0 4px;">Feedbacks — Master Monitor</h1>
-      <div class="muted">Live view of submitted feedbacks (sample data shown until you load live)</div>
+      <div class="muted">Live view of submitted feedbacks (sample data initially)</div>
     </div>
 
     <div class="top-controls">
-      <div>
+      <div style="flex:1 1 560px;">
         <div class="kpi-row" id="kpiRow">
           <div class="kpi">
             <div class="small">Total submissions</div>
@@ -61,8 +87,20 @@
           </div>
         </div>
 
-        <div class="search-row">
-          <input id="searchInput" placeholder="Search name, phone, comments..." style="padding:8px 12px; border-radius:8px; border:1px solid #e6eef7; width:320px;">
+        <!-- Service averages -->
+        <div class="service-averages" id="serviceAverages">
+          <!-- Filled by JS -->
+          <!-- Example card structure:
+          <div class="service-card">
+            <div class="title">Quality of Service</div>
+            <div class="num" id="avgQuality">4.2</div>
+            <div class="bar-bg"><div class="bar-fill" style="width:84%"></div></div>
+          </div>
+          -->
+        </div>
+
+        <div class="search-row" style="margin-top:12px;">
+          <input id="searchInput" placeholder="Search name, phone, comments..." style="padding:8px 12px; border-radius:8px; border:1px solid #e6eef7; width:360px;">
           <select id="filterRating" style="padding:8px 10px; border-radius:8px; border:1px solid #e6eef7;">
             <option value="">Filter by overall (any)</option>
             <option value="5">Overall = 5</option>
@@ -113,16 +151,15 @@
     </div>
   </div>
 
-  <!-- logo-data + loader (keeps logo consistent) -->
+  <!-- logo-data + loader -->
   <script src="logo-data.js"></script>
   <script src="logo.js"></script>
 
   <script>
-    // Replace with your deployed Apps Script URL to enable live loading.
-    // Example: const SCRIPT_URL = 'https://script.google.com/macros/s/XXXXX/exec';
-    const SCRIPT_URL = ''; // <-- set this to your web app URL to enable live fetch
+    // Put your Apps Script exec URL here to enable live data
+    const SCRIPT_URL = ''; // e.g. 'https://script.google.com/macros/s/XXXXX/exec'
 
-    // Sample data (visible immediately)
+    // Sample data for preview
     const SAMPLE_DATA = [
       {
         "Timestamp":"2026-08-26T16:10:12.000Z",
@@ -157,25 +194,54 @@
     ];
 
     // State
-    let allRows = SAMPLE_DATA.slice(); // start with sample
+    let allRows = SAMPLE_DATA.slice();
     let filteredRows = allRows.slice();
 
     // Utilities
     function formatTimestamp(ts) {
-      try {
-        const d = new Date(ts);
-        return d.toLocaleString();
-      } catch (e) { return ts; }
+      try { const d = new Date(ts); return d.toLocaleString(); } catch (e) { return ts; }
     }
-    function badgeClass(n) {
-      return 'rating-' + (n>=1 && n<=5 ? n : 0);
-    }
-    function escapeHtml(s) {
-      if (!s && s !== 0) return '';
-      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    function badgeClass(n) { return 'rating-' + (n>=1 && n<=5 ? n : 0); }
+    function escapeHtml(s) { if (!s && s !== 0) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    // Compute service averages
+    function computeServiceAverages(rows) {
+      const metrics = [
+        { key: 'Overall Satisfaction', label: 'Overall Satisfaction' },
+        { key: 'Quality of Service', label: 'Quality of Service' },
+        { key: 'Timeliness', label: 'Timeliness' },
+        { key: 'Staff Friendliness', label: 'Staff Friendliness' }
+      ];
+      const result = metrics.map(m => {
+        const vals = rows.map(r => Number(r[m.key] || 0)).filter(v => v > 0);
+        const avg = vals.length ? (vals.reduce((s,v)=>s+v,0)/vals.length) : 0;
+        return { key: m.key, label: m.label, avg: avg, count: vals.length };
+      });
+      return result;
     }
 
-    // Render functions
+    // Render service averages UI
+    function renderServiceAverages(rows) {
+      const container = document.getElementById('serviceAverages');
+      container.innerHTML = '';
+      const avgs = computeServiceAverages(rows);
+      avgs.forEach(s => {
+        const pct = Math.round((s.avg / 5) * 100);
+        const card = document.createElement('div');
+        card.className = 'service-card';
+        card.innerHTML = `
+          <div class="title">${escapeHtml(s.label)}</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <div style="font-size:22px;font-weight:700;color:#0f172a;">${s.avg ? s.avg.toFixed(2) : '—'}</div>
+            <div class="small" style="color:#64748b;">${s.count} rated</div>
+          </div>
+          <div class="bar-bg"><div class="bar-fill" style="width:${pct}%;"></div></div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // Render KPIs
     function renderKPIs(rows) {
       const count = rows.length;
       const avg = (rows.reduce((s,r)=>s + Number(r['Overall Satisfaction']||0),0) / (count||1));
@@ -183,14 +249,15 @@
       document.getElementById('kpiCount').textContent = count;
       document.getElementById('kpiAvg').textContent = count ? avg.toFixed(2) : '—';
       document.getElementById('kpiGoodPct').textContent = count ? `${Math.round(100 * goodCount / count)}%` : '—';
+      renderServiceAverages(rows);
     }
 
+    // Render table
     function renderTable(rows) {
       const tbody = document.getElementById('tableBody');
       tbody.innerHTML = '';
       rows.forEach((r, idx) => {
         const tr = document.createElement('tr');
-
         tr.innerHTML = `
           <td>${escapeHtml(formatTimestamp(r.Timestamp))}</td>
           <td><span class="badge ${badgeClass(r['Overall Satisfaction'])}">${escapeHtml(r['Overall Satisfaction'])}</span></td>
@@ -208,7 +275,7 @@
         tbody.appendChild(tr);
       });
 
-      // attach handlers
+      // handlers
       Array.from(document.getElementsByClassName('viewBtn')).forEach(b=>{
         b.addEventListener('click', (e)=>{
           const i = Number(e.currentTarget.dataset.idx);
@@ -218,15 +285,11 @@
       Array.from(document.getElementsByClassName('copyBtn')).forEach(b=>{
         b.addEventListener('click', async (e)=>{
           const phone = e.currentTarget.dataset.phone || '';
-          if (!phone) {
-            alert('No phone available for this entry.');
-            return;
-          }
+          if (!phone) { alert('No phone available for this entry.'); return; }
           try {
             await navigator.clipboard.writeText(phone);
             alert('Phone copied: ' + phone);
           } catch (err) {
-            // fallback
             const ta = document.createElement('textarea'); ta.value = phone; document.body.appendChild(ta); ta.select();
             document.execCommand('copy'); ta.remove();
             alert('Phone copied: ' + phone);
@@ -254,12 +317,11 @@
     document.getElementById('modalClose').addEventListener('click', ()=> modalBackdrop.style.display = 'none');
     modalBackdrop.addEventListener('click', (ev)=> { if (ev.target === modalBackdrop) modalBackdrop.style.display = 'none'; });
 
-    // Filtering & searching
+    // Filters & search
     function applyFilters() {
       const q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
       const ratingFilter = document.getElementById('filterRating').value;
       filteredRows = allRows.filter(r => {
-        // rating filter
         if (ratingFilter) {
           if (String(r['Overall Satisfaction']) !== ratingFilter) return false;
         }
@@ -272,7 +334,7 @@
     }
     document.getElementById('btnApplyFilters').addEventListener('click', applyFilters);
 
-    // Export CSV
+    // Export
     function downloadCSV(rows) {
       if (!rows || rows.length === 0) { alert('No rows to export'); return; }
       const headers = Object.keys(rows[0]);
@@ -297,7 +359,7 @@
       renderTable(filteredRows);
     });
 
-    // Live loading via JSONP from Apps Script
+    // Live JSONP load
     function loadLive() {
       if (!SCRIPT_URL) {
         alert('SCRIPT_URL not set in master.html. Set it to your Apps Script web app URL to enable live load.');
@@ -305,7 +367,6 @@
       }
       document.getElementById('status').textContent = 'Loading live data…';
       const callbackName = 'handleLiveData';
-      // remove previous script tag if present
       const existing = document.getElementById('_jsonp_master');
       if (existing) existing.remove();
 
@@ -322,7 +383,6 @@
           renderKPIs(filteredRows);
           renderTable(filteredRows);
         } finally {
-          // cleanup
           const script = document.getElementById('_jsonp_master');
           if (script) script.remove();
           try { delete window[callbackName]; } catch(e){}
@@ -331,7 +391,6 @@
 
       const script = document.createElement('script');
       script.id = '_jsonp_master';
-      // include a key param if your Apps Script requires one, e.g. &key=SECRET
       script.src = `${SCRIPT_URL}?action=list&callback=${callbackName}&_=${Date.now()}`;
       script.onerror = function() {
         document.getElementById('status').textContent = 'Failed to load live data (network or CORS error).';
@@ -344,9 +403,8 @@
     renderKPIs(filteredRows);
     renderTable(filteredRows);
 
-    // Basic live-refresh on load if SCRIPT_URL present
+    // Auto-load live if SCRIPT_URL set
     if (SCRIPT_URL) {
-      // auto-load live if you set SCRIPT_URL
       document.getElementById('status').textContent = 'Auto-loading live data…';
       loadLive();
     }
