@@ -1,17 +1,38 @@
 // Logo handling and QR code generation
 document.addEventListener('DOMContentLoaded', function() {
-    // Handle logo image fallback
-    const logoImage = document.getElementById('logoImage');
-    if (logoImage) {
-        logoImage.addEventListener('error', function() {
-            // If image fails to load, hide it and show text-only
-            this.style.display = 'none';
-        });
-    }
+    // Load logo from logo-data.js
+    loadLogo();
     
     // Generate QR Code (optional - uncomment to enable)
     generateQRCode();
 });
+
+/**
+ * Load the logo image from Base64 data
+ */
+function loadLogo() {
+    const logoImage = document.getElementById('logoImage');
+    if (logoImage && window.LOGO_DATA) {
+        // Set the image source using Base64 data
+        logoImage.src = `data:${LOGO_DATA.mimeType};base64,${LOGO_DATA.base64}`;
+        
+        // Handle image load error - fallback to file path if available
+        logoImage.addEventListener('error', function() {
+            console.warn('Base64 logo failed to load, trying file path...');
+            if (LOGO_DATA.filePath) {
+                this.src = LOGO_DATA.filePath;
+            }
+            
+            // If still failing, hide and show text-only
+            this.addEventListener('error', function() {
+                this.style.display = 'none';
+                console.warn('Logo image failed to load. Please check the image data.');
+            });
+        });
+    } else {
+        console.warn('Logo data not found. Please ensure logo-data.js is loaded.');
+    }
+}
 
 /**
  * Generate QR code for the current page URL
@@ -35,18 +56,20 @@ function generateQRCode() {
 }
 
 /**
- * Update logo dynamically (if needed)
- * @param {string} imageUrl - URL of the logo image
+ * Update logo dynamically
+ * @param {string} base64Data - Base64 encoded image data
+ * @param {string} mimeType - MIME type of the image (optional)
  */
-function updateLogo(imageUrl) {
+function updateLogo(base64Data, mimeType = 'image/jpeg') {
     const logoImage = document.getElementById('logoImage');
     if (logoImage) {
-        logoImage.src = imageUrl;
+        logoImage.src = `data:${mimeType};base64,${base64Data}`;
     }
 }
 
 // Export functions for use in other scripts
 window.LogoManager = {
+    loadLogo,
     generateQRCode,
     updateLogo
 };
