@@ -317,10 +317,19 @@ textarea {
         top: -6px;
         right: -6px;
     }
+
+    /* Smaller logo on narrow screens */
+    .logo {
+        width: 120px;
+        max-width: 50%;
+        margin-bottom: 10px;
+    }
 }
-/* Logo styling */
+
+/* Logo styling — enlarged and responsive */
 .logo {
-    width: 84px;
+    width: 160px;       /* desktop / default size */
+    max-width: 40%;     /* prevents overflow on small viewports */
     height: auto;
     display: block;
     margin: 0 auto 12px;
