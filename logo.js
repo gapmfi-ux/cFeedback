@@ -7,9 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     generateQRCode();
 });
 
-/**
- * Load the logo image from Base64 data
- */
+
 function loadLogo() {
     const logoImage = document.getElementById('logoImage');
     if (logoImage && window.LOGO_DATA) {
