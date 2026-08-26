@@ -1,94 +1,355 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Feedbacks - Master Monitor</title>
+  <meta charset="utf-8" />
+  <title>Feedbacks — Master Monitor</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="styles.css">
   <style>
-    /* Minimal table styles */
-    .table-wrap { overflow-x:auto; margin-top:20px; }
+    /* Page-specific */
+    .top-controls { display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; }
+    .kpi-row { display:flex; gap:12px; align-items:stretch; flex-wrap:wrap; }
+    .kpi { background:#f7fafc; padding:12px 16px; border-radius:8px; min-width:140px; text-align:center; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+    .kpi .num { font-size:20px; font-weight:700; color:#1a237e; }
+    .controls { display:flex; gap:8px; align-items:center; }
+    .table-wrap { overflow-x:auto; margin-top:16px; }
     table.feedbacks { width:100%; border-collapse: collapse; font-size:14px; }
-    table.feedbacks th, table.feedbacks td { padding:10px; border:1px solid #e6e9ef; text-align:left; vertical-align:top; }
-    table.feedbacks th { background:#f7fafc; color:#2d3748; font-weight:600; }
-    .center { text-align:center; }
+    table.feedbacks th, table.feedbacks td { padding:10px; border:1px solid #eef2f7; text-align:left; vertical-align:top; }
+    table.feedbacks th { background:#fbfdff; color:#2d3748; font-weight:700; white-space:nowrap; }
+    .badge { display:inline-block; padding:6px 10px; border-radius:999px; color:#fff; font-weight:700; min-width:28px; text-align:center; }
+    .rating-5 { background:#10b981; } /* green */
+    .rating-4 { background:#3b82f6; } /* blue */
+    .rating-3 { background:#f59e0b; } /* amber */
+    .rating-2 { background:#f97316; } /* orange */
+    .rating-1 { background:#ef4444; } /* red */
+    .small { font-size:13px; color:#718096; }
+    .actions button { margin-right:6px; }
+    .search-row { display:flex; gap:8px; align-items:center; margin-top:10px; }
+    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.4); display:none; align-items:center; justify-content:center; z-index:9999; }
+    .modal { background:white; padding:18px; border-radius:10px; max-width:720px; width:92%; max-height:80vh; overflow:auto; box-shadow:0 20px 60px rgba(0,0,0,0.25); }
+    .modal h3 { margin-top:0; }
+    .right { text-align:right; }
+    .logo-inline { width:120px; height:auto; display:block; margin:0 auto 12px; }
+    .muted { color:#94a3b8; font-size:13px; }
+    .controls .btn { padding:8px 12px; border-radius:8px; border:none; cursor:pointer; background:#1a237e; color:white; font-weight:600; }
+    .controls .btn.secondary { background:#edf2ff; color:#1a237e; border:1px solid #cbd5e0; }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="header">
-      <h1>Feedbacks — Master Monitor</h1>
-      <p>Live view of all submitted feedbacks</p>
+    <div class="header" style="text-align:center;">
+      <!-- Logo (logo-data.js + logo.js will set this) -->
+      <img id="logoImage" alt="GHP Microfinance logo" class="logo-inline" />
+      <h1 style="margin:6px 0 4px;">Feedbacks — Master Monitor</h1>
+      <div class="muted">Live view of submitted feedbacks (sample data shown until you load live)</div>
     </div>
 
-    <div id="status" class="center">Loading feedbacks…</div>
+    <div class="top-controls">
+      <div>
+        <div class="kpi-row" id="kpiRow">
+          <div class="kpi">
+            <div class="small">Total submissions</div>
+            <div class="num" id="kpiCount">—</div>
+          </div>
+          <div class="kpi">
+            <div class="small">Average overall</div>
+            <div class="num" id="kpiAvg">—</div>
+          </div>
+          <div class="kpi">
+            <div class="small">% 4–5 stars</div>
+            <div class="num" id="kpiGoodPct">—</div>
+          </div>
+        </div>
 
-    <div class="table-wrap" id="tableWrap" style="display:none;">
-      <table class="feedbacks" id="feedbackTable">
-        <thead id="tableHead"></thead>
+        <div class="search-row">
+          <input id="searchInput" placeholder="Search name, phone, comments..." style="padding:8px 12px; border-radius:8px; border:1px solid #e6eef7; width:320px;">
+          <select id="filterRating" style="padding:8px 10px; border-radius:8px; border:1px solid #e6eef7;">
+            <option value="">Filter by overall (any)</option>
+            <option value="5">Overall = 5</option>
+            <option value="4">Overall = 4</option>
+            <option value="3">Overall = 3</option>
+            <option value="2">Overall = 2</option>
+            <option value="1">Overall = 1</option>
+          </select>
+          <button id="btnApplyFilters" class="btn secondary">Apply</button>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="btnLive" class="btn">Refresh (Live)</button>
+        <button id="btnUseSample" class="btn secondary">Use Sample</button>
+        <button id="btnExport" class="btn secondary">Export CSV</button>
+      </div>
+    </div>
+
+    <div id="status" class="muted" style="margin-bottom:6px;">Showing sample data — click "Refresh (Live)" to load from server</div>
+
+    <div class="table-wrap" id="tableWrap">
+      <table class="feedbacks" id="feedbackTable" aria-live="polite">
+        <thead id="tableHead">
+          <tr>
+            <th>Timestamp</th>
+            <th>Overall</th>
+            <th>Quality</th>
+            <th>Timeliness</th>
+            <th>Friendliness</th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Comments</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
         <tbody id="tableBody"></tbody>
       </table>
     </div>
+  </div>
 
-    <div style="margin-top:16px;">
-      <a href="index.html" style="text-decoration:underline; color:#718096;">← Back to front page</a>
+  <!-- Modal -->
+  <div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true">
+    <div class="modal" role="document">
+      <div class="right"><button id="modalClose" class="btn secondary">Close</button></div>
+      <h3 id="modalTitle">Feedback details</h3>
+      <div id="modalContent"></div>
     </div>
   </div>
 
-  <script>
-    // Replace this with your deployed Apps Script URL
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzJ1tOsTZ23rLudil3pLqBBlIR2KCyEUfU2VU6dWJQXJ2vnZgio3ck2dz3c26YpxFPdaQ/exec';
+  <!-- logo-data + loader (keeps logo consistent) -->
+  <script src="logo-data.js"></script>
+  <script src="logo.js"></script>
 
-    // JSONP loader
-    function loadFeedbacks() {
-      const callbackName = 'renderFeedbacks';
-      // Create script tag
-      const s = document.createElement('script');
-      s.src = `${SCRIPT_URL}?action=list&callback=${callbackName}&_=${Date.now()}`;
-      s.onerror = function() {
-        document.getElementById('status').textContent = 'Failed to load feedbacks (network error).';
-      };
-      document.head.appendChild(s);
+  <script>
+    // Replace with your deployed Apps Script URL to enable live loading.
+    // Example: const SCRIPT_URL = 'https://script.google.com/macros/s/XXXXX/exec';
+    const SCRIPT_URL = ''; // <-- set this to your web app URL to enable live fetch
+
+    // Sample data (visible immediately)
+    const SAMPLE_DATA = [
+      {
+        "Timestamp":"2026-08-26T16:10:12.000Z",
+        "Overall Satisfaction":"5",
+        "Quality of Service":"5",
+        "Timeliness":"4",
+        "Staff Friendliness":"5",
+        "Additional Comments":"Great service, very polite staff. Quick processing.",
+        "Name":"Ama",
+        "Phone":"+233240000001"
+      },
+      {
+        "Timestamp":"2026-08-25T14:02:03.000Z",
+        "Overall Satisfaction":"3",
+        "Quality of Service":"3",
+        "Timeliness":"3",
+        "Staff Friendliness":"2",
+        "Additional Comments":"Long wait time. Could improve queue management.",
+        "Name":"Kofi",
+        "Phone":""
+      },
+      {
+        "Timestamp":"2026-08-24T09:45:20.000Z",
+        "Overall Satisfaction":"4",
+        "Quality of Service":"4",
+        "Timeliness":"4",
+        "Staff Friendliness":"4",
+        "Additional Comments":"Good overall. Friendly tellers.",
+        "Name":"Adwoa",
+        "Phone":"+233240000002"
+      }
+    ];
+
+    // State
+    let allRows = SAMPLE_DATA.slice(); // start with sample
+    let filteredRows = allRows.slice();
+
+    // Utilities
+    function formatTimestamp(ts) {
+      try {
+        const d = new Date(ts);
+        return d.toLocaleString();
+      } catch (e) { return ts; }
+    }
+    function badgeClass(n) {
+      return 'rating-' + (n>=1 && n<=5 ? n : 0);
+    }
+    function escapeHtml(s) {
+      if (!s && s !== 0) return '';
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
 
-    // global callback for JSONP
-    function renderFeedbacks(data) {
-      document.getElementById('status').style.display = 'none';
+    // Render functions
+    function renderKPIs(rows) {
+      const count = rows.length;
+      const avg = (rows.reduce((s,r)=>s + Number(r['Overall Satisfaction']||0),0) / (count||1));
+      const goodCount = rows.filter(r => Number(r['Overall Satisfaction']) >= 4).length;
+      document.getElementById('kpiCount').textContent = count;
+      document.getElementById('kpiAvg').textContent = count ? avg.toFixed(2) : '—';
+      document.getElementById('kpiGoodPct').textContent = count ? `${Math.round(100 * goodCount / count)}%` : '—';
+    }
 
-      if (!Array.isArray(data) || data.length === 0) {
-        document.getElementById('status').textContent = 'No feedbacks found.';
+    function renderTable(rows) {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+      rows.forEach((r, idx) => {
+        const tr = document.createElement('tr');
+
+        tr.innerHTML = `
+          <td>${escapeHtml(formatTimestamp(r.Timestamp))}</td>
+          <td><span class="badge ${badgeClass(r['Overall Satisfaction'])}">${escapeHtml(r['Overall Satisfaction'])}</span></td>
+          <td>${escapeHtml(r['Quality of Service'])}</td>
+          <td>${escapeHtml(r['Timeliness'])}</td>
+          <td>${escapeHtml(r['Staff Friendliness'])}</td>
+          <td>${escapeHtml(r['Name'])}</td>
+          <td>${escapeHtml(r['Phone'])}</td>
+          <td>${escapeHtml((r['Additional Comments']||'').slice(0,80))}${(r['Additional Comments'] && r['Additional Comments'].length>80)?'…':''}</td>
+          <td class="actions">
+            <button data-idx="${idx}" class="viewBtn btn secondary">View</button>
+            <button data-phone="${escapeHtml(r['Phone']||'')}" class="copyBtn btn secondary">Copy phone</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // attach handlers
+      Array.from(document.getElementsByClassName('viewBtn')).forEach(b=>{
+        b.addEventListener('click', (e)=>{
+          const i = Number(e.currentTarget.dataset.idx);
+          openModal(filteredRows[i]);
+        });
+      });
+      Array.from(document.getElementsByClassName('copyBtn')).forEach(b=>{
+        b.addEventListener('click', async (e)=>{
+          const phone = e.currentTarget.dataset.phone || '';
+          if (!phone) {
+            alert('No phone available for this entry.');
+            return;
+          }
+          try {
+            await navigator.clipboard.writeText(phone);
+            alert('Phone copied: ' + phone);
+          } catch (err) {
+            // fallback
+            const ta = document.createElement('textarea'); ta.value = phone; document.body.appendChild(ta); ta.select();
+            document.execCommand('copy'); ta.remove();
+            alert('Phone copied: ' + phone);
+          }
+        });
+      });
+    }
+
+    // Modal
+    const modalBackdrop = document.getElementById('modalBackdrop');
+    function openModal(item) {
+      document.getElementById('modalTitle').textContent = `Feedback from ${item.Name || 'Anonymous'}`;
+      const html = `
+        <p><strong>Timestamp:</strong> ${escapeHtml(formatTimestamp(item.Timestamp))}</p>
+        <p><strong>Overall:</strong> <span class="badge ${badgeClass(item['Overall Satisfaction'])}">${escapeHtml(item['Overall Satisfaction'])}</span></p>
+        <p><strong>Quality:</strong> ${escapeHtml(item['Quality of Service'])}</p>
+        <p><strong>Timeliness:</strong> ${escapeHtml(item['Timeliness'])}</p>
+        <p><strong>Friendliness:</strong> ${escapeHtml(item['Staff Friendliness'])}</p>
+        <p><strong>Phone:</strong> ${escapeHtml(item.Phone || '')}</p>
+        <p><strong>Comments:</strong><br>${escapeHtml(item['Additional Comments'] || '')}</p>
+      `;
+      document.getElementById('modalContent').innerHTML = html;
+      modalBackdrop.style.display = 'flex';
+    }
+    document.getElementById('modalClose').addEventListener('click', ()=> modalBackdrop.style.display = 'none');
+    modalBackdrop.addEventListener('click', (ev)=> { if (ev.target === modalBackdrop) modalBackdrop.style.display = 'none'; });
+
+    // Filtering & searching
+    function applyFilters() {
+      const q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+      const ratingFilter = document.getElementById('filterRating').value;
+      filteredRows = allRows.filter(r => {
+        // rating filter
+        if (ratingFilter) {
+          if (String(r['Overall Satisfaction']) !== ratingFilter) return false;
+        }
+        if (!q) return true;
+        const hay = (r['Name']+' '+r['Phone']+' '+(r['Additional Comments']||'')+' '+(r['Overall Satisfaction']||'')).toLowerCase();
+        return hay.indexOf(q) !== -1;
+      });
+      renderKPIs(filteredRows);
+      renderTable(filteredRows);
+    }
+    document.getElementById('btnApplyFilters').addEventListener('click', applyFilters);
+
+    // Export CSV
+    function downloadCSV(rows) {
+      if (!rows || rows.length === 0) { alert('No rows to export'); return; }
+      const headers = Object.keys(rows[0]);
+      const csv = [headers.join(',')]
+        .concat(rows.map(r => headers.map(h => `"${String(r[h]||'').replace(/"/g,'""')}"`).join(',')))
+        .join('\n');
+      const a = document.createElement('a');
+      a.href = 'data:text/csv;charset=utf-8,%EF%BB%BF' + encodeURIComponent(csv);
+      a.download = 'feedbacks.csv';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+    document.getElementById('btnExport').addEventListener('click', ()=> downloadCSV(filteredRows));
+
+    // Use sample
+    document.getElementById('btnUseSample').addEventListener('click', ()=>{
+      allRows = SAMPLE_DATA.slice();
+      filteredRows = allRows.slice();
+      document.getElementById('status').textContent = 'Showing sample data';
+      renderKPIs(filteredRows);
+      renderTable(filteredRows);
+    });
+
+    // Live loading via JSONP from Apps Script
+    function loadLive() {
+      if (!SCRIPT_URL) {
+        alert('SCRIPT_URL not set in master.html. Set it to your Apps Script web app URL to enable live load.');
         return;
       }
+      document.getElementById('status').textContent = 'Loading live data…';
+      const callbackName = 'handleLiveData';
+      // remove previous script tag if present
+      const existing = document.getElementById('_jsonp_master');
+      if (existing) existing.remove();
 
-      const headers = Object.keys(data[0]);
-      const thead = document.getElementById('tableHead');
-      const tbody = document.getElementById('tableBody');
+      window[callbackName] = function(data) {
+        try {
+          if (!Array.isArray(data)) {
+            document.getElementById('status').textContent = 'Live load returned unexpected data.';
+            console.error('Live data:', data);
+            return;
+          }
+          allRows = data;
+          filteredRows = allRows.slice();
+          document.getElementById('status').textContent = 'Loaded live data (' + allRows.length + ' rows)';
+          renderKPIs(filteredRows);
+          renderTable(filteredRows);
+        } finally {
+          // cleanup
+          const script = document.getElementById('_jsonp_master');
+          if (script) script.remove();
+          try { delete window[callbackName]; } catch(e){}
+        }
+      };
 
-      // build header row
-      let thHtml = '<tr>';
-      headers.forEach(h => { thHtml += `<th>${h}</th>`; });
-      thHtml += '</tr>';
-      thead.innerHTML = thHtml;
-
-      // build body
-      let rows = '';
-      data.forEach(row => {
-        rows += '<tr>';
-        headers.forEach(h => {
-          let v = row[h] === null || row[h] === undefined ? '' : row[h];
-          v = String(v);
-          // simple escaping
-          v = v.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-          rows += `<td>${v}</td>`;
-        });
-        rows += '</tr>';
-      });
-      tbody.innerHTML = rows;
-
-      document.getElementById('tableWrap').style.display = '';
+      const script = document.createElement('script');
+      script.id = '_jsonp_master';
+      // include a key param if your Apps Script requires one, e.g. &key=SECRET
+      script.src = `${SCRIPT_URL}?action=list&callback=${callbackName}&_=${Date.now()}`;
+      script.onerror = function() {
+        document.getElementById('status').textContent = 'Failed to load live data (network or CORS error).';
+      };
+      document.head.appendChild(script);
     }
+    document.getElementById('btnLive').addEventListener('click', loadLive);
 
-    // Kick off
-    loadFeedbacks();
+    // Initial render (sample)
+    renderKPIs(filteredRows);
+    renderTable(filteredRows);
+
+    // Basic live-refresh on load if SCRIPT_URL present
+    if (SCRIPT_URL) {
+      // auto-load live if you set SCRIPT_URL
+      document.getElementById('status').textContent = 'Auto-loading live data…';
+      loadLive();
+    }
   </script>
 </body>
 </html>
