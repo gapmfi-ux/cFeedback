@@ -1,225 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Feedback Form - GHP Microfinance</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Feedback - GHP Microfinance</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <!-- Logo (inserted here so logo.js has a target) -->
-            <img id="logoImage" alt="GHP Microfinance logo" class="logo" />
-
-            <h1>⭐ WE VALUE YOUR FEEDBACK!</h1>
-            <p>Rate our services and help us improve</p>
-        </div>
-        
-        <!-- QR Code Section -->
-        <div class="qr-section">
-            <div class="qr-placeholder" id="qrContainer">
-                <svg viewBox="0 0 100 100">
-                    <rect width="100" height="100" fill="white"/>
-                    <rect x="10" y="10" width="20" height="20" fill="black"/>
-                    <rect x="40" y="10" width="40" height="20" fill="black"/>
-                    <rect x="70" y="10" width="20" height="20" fill="black"/>
-                    <rect x="10" y="40" width="20" height="40" fill="black"/>
-                    <rect x="70" y="40" width="20" height="40" fill="black"/>
-                    <rect x="10" y="70" width="20" height="20" fill="black"/>
-                    <rect x="40" y="70" width="40" height="20" fill="black"/>
-                    <rect x="70" y="70" width="20" height="20" fill="black"/>
-                    <rect x="45" y="45" width="10" height="10" fill="black"/>
-                    <rect x="30" y="30" width="5" height="5" fill="black"/>
-                    <rect x="65" y="30" width="5" height="5" fill="black"/>
-                    <rect x="30" y="65" width="5" height="5" fill="black"/>
-                    <rect x="55" y="30" width="5" height="5" fill="black"/>
-                    <rect x="30" y="55" width="5" height="5" fill="black"/>
-                </svg>
-            </div>
-            <div class="qr-label">📱 SCAN TO SHARE YOUR FEEDBACK</div>
-            <div class="qr-sub">or complete the form below</div>
-        </div>
-        
-        <!-- Instructions -->
-        <div class="instructions">
-            <div class="step">
-                <div class="step-number">1</div>
-                <div class="step-text">Scan QR<br>Code</div>
-            </div>
-            <div class="step">
-                <div class="step-number">2</div>
-                <div class="step-text">Complete<br>Form</div>
-            </div>
-            <div class="step">
-                <div class="step-number">3</div>
-                <div class="step-text">Submit<br>Feedback</div>
-            </div>
-        </div>
-        
-        <!-- Feedback Form -->
-        <form id="feedbackForm">
-            <!-- Overall Satisfaction -->
-            <div class="form-group">
-                <label>Overall Satisfaction</label>
-                <div class="rating-group" data-rating="overallSatisfaction">
-                    <label class="rating-option">
-                        <input type="radio" name="overallSatisfaction" value="1">
-                        <span class="rating-circle">1</span>
-                        <span class="rating-label">Poor</span>
-                    </label>
-                    <label class="rating-option">
-                        <input type="radio" name="overallSatisfaction" value="2">
-                        <span class="rating-circle">2</span>
-                        <span class="rating-label">Fair</span>
-                    </label>
-                    <label class="rating-option">
-                        <input type="radio" name="overallSatisfaction" value="3">
-                        <span class="rating-circle">3</span>
-                        <span class="rating-label">Good</span>
-                    </label>
-                    <label class="rating-option">
-                        <input type="radio" name="overallSatisfaction" value="4">
-                        <span class="rating-circle">4</span>
-                        <span class="rating-label">Very Good</span>
-                    </label>
-                    <label class="rating-option">
-                        <input type="radio" name="overallSatisfaction" value="5">
-                        <span class="rating-circle">5</span>
-                        <span class="rating-label">Excellent</span>
-                    </label>
-                </div>
-            </div>
-            
-            <!-- Quality of Service -->
-            <div class="form-group">
-                <label>Quality of Service</label>
-                <div class="rating-group" data-rating="qualityOfService">
-                    <label class="rating-option">
-                        <input type="radio" name="qualityOfService" value="1">
-                        <span class="rating-circle">1</span>
-                        <span class="rating-label">Poor</span>
-                    </label>
-                    <label class="rating-option">
-                        <input type="radio" name="qualityOfService" value="2">
-                        <span class="rating-circle">2</span>
-                        <span class="rating-label">Fair</span>
-                    </label>
-                    <label class="rating-option">
-                        <input type="radio" name="qualityOfService" value="3">
-                        <span class="rating-circle">3</span>
-                        <span class="rating-label">Good</span>
-                    </label>
-                    <label class="rating-option">
-                        <input type="radio" name="qualityOfService" value="4">
-                        <span class="rating-circle">4</span>
-                        <span class="rating-label">Very Good</span>
-                    </label>
-                    <label class="rating-option">
-                        <input type="radio" name="qualityOfService" value="5">
-                        <span class="rating-circle">5</span>
-                        <span class="rating-label">Excellent</span>
-                    </label>
-                </div>
-            </div>
-            
-            <!-- Timeliness -->
-            <div class="form-group">
-                <label>Timeliness</label>
-                <div class="rating-group" data-rating="timeliness">
-                    <label class="rating-option">
-                        <input type="radio" name="timeliness" value="1">
-                        <span class="rating-circle">1</span>
-                        <span class="rating-label">Poor</span>
-                    </label>
-                    <label class="rating-option">
-                        <input type="radio" name="timeliness" value="2">
-                        <span class="rating-circle">2</span>
-                        <span class="rating-label">Fair</span>
-                    </label>
-                    <label class="rating-option">
-                        <input type="radio" name="timeliness" value="3">
-                        <span class="rating-circle">3</span>
-                        <span class="rating-label">Good</span>
-                    </label>
-                    <label class="rating-option">
-                        <input type="radio" name="timeliness" value="4">
-                        <span class="rating-circle">4</span>
-                        <span class="rating-label">Very Good</span>
-                    </label>
-                    <label class="rating-option">
-                        <input type="radio" name="timeliness" value="5">
-                        <span class="rating-circle">5</span>
-                        <span class="rating-label">Excellent</span>
-                    </label>
-                </div>
-            </div>
-            
-            <!-- Staff Friendliness -->
-            <div class="form-group">
-                <label>Staff Friendliness</label>
-                <div class="rating-group" data-rating="staffFriendliness">
-                    <label class="rating-option">
-                        <input type="radio" name="staffFriendliness" value="1">
-                        <span class="rating-circle">1</span>
-                        <span class="rating-label">Poor</span>
-                    </label>
-                    <label class="rating-option">
-                        <input type="radio" name="staffFriendliness" value="2">
-                        <span class="rating-circle">2</span>
-                        <span class="rating-label">Fair</span>
-                    </label>
-                    <label class="rating-option">
-                        <input type="radio" name="staffFriendliness" value="3">
-                        <span class="rating-circle">3</span>
-                        <span class="rating-label">Good</span>
-                    </label>
-                    <label class="rating-option">
-                        <input type="radio" name="staffFriendliness" value="4">
-                        <span class="rating-circle">4</span>
-                        <span class="rating-label">Very Good</span>
-                    </label>
-                    <label class="rating-option">
-                        <input type="radio" name="staffFriendliness" value="5">
-                        <span class="rating-circle">5</span>
-                        <span class="rating-label">Excellent</span>
-                    </label>
-                </div>
-            </div>
-            
-            <!-- Additional Comments -->
-            <div class="form-group">
-                <label>Additional Comments</label>
-                <textarea id="additionalComments" placeholder="Tell us more about your experience..."></textarea>
-            </div>
-            
-            <!-- Optional Fields -->
-            <div class="form-group">
-                <label>Name <span class="optional">(optional)</span></label>
-                <input type="text" id="name" placeholder="Your name">
-            </div>
-            
-            <div class="form-group">
-                <label>Email <span class="optional">(optional)</span></label>
-                <input type="email" id="email" placeholder="your@email.com">
-            </div>
-            
-            <button type="submit" class="submit-btn" id="submitBtn">Submit Feedback</button>
-        </form>
-        
-        <div id="messageContainer"></div>
-        
-        <div class="footer">
-            Thank you for helping us serve you better!
-        </div>
+  <div class="container">
+    <div class="header">
+      <img id="logoImage" alt="GHP Microfinance logo" class="logo" />
+      <h1>⭐ WE VALUE YOUR FEEDBACK!</h1>
+      <p>Rate our services and help us improve</p>
     </div>
 
-    <!-- logo data and loader (must be before main.js so main can rely on logo if needed) -->
-    <script src="logo-data.js"></script>
-    <script src="logo.js"></script>
+    <div class="qr-section">
+      <div class="qr-placeholder" id="qrContainer" aria-hidden="false">
+        <!-- QR will be inserted here -->
+      </div>
+      <div class="qr-label">📱 SCAN TO OPEN THE FEEDBACK FORM</div>
+      <div class="qr-sub">or open it directly</div>
 
-    <script src="config.js"></script>
-    <script src="main.js"></script>
+      <div style="margin-top:16px; text-align:center;">
+        <a href="form.html" class="submit-btn" style="display:inline-block; width:auto; padding:10px 18px; text-decoration:none;">Open Form</a>
+      </div>
+    </div>
+
+    <div style="text-align:center; margin-top:12px; color:#718096;">
+      <small>Scan the QR code with a mobile device or click "Open Form".</small>
+    </div>
+
+    <div style="height:16px"></div>
+
+    <div class="footer">
+      Thank you for helping us serve you better!
+    </div>
+  </div>
+
+  <!-- logo data + loader -->
+  <script src="logo-data.js"></script>
+  <script src="logo.js"></script>
+
+  <script>
+    // generate QR code pointing to form.html (relative)
+    document.addEventListener('DOMContentLoaded', function () {
+      const qrContainer = document.getElementById('qrContainer');
+      if (!qrContainer) return;
+
+      // Build absolute URL for the form page so QR works when scanned
+      const origin = window.location.origin || (window.location.protocol + '//' + window.location.host);
+      // derive base path and append form.html
+      const basePath = window.location.pathname.replace(/\/[^/]*$/, '/');
+      const formUrl = origin + basePath + 'form.html';
+
+      const qrImg = document.createElement('img');
+      qrImg.alt = 'QR code to open feedback form';
+      qrImg.width = 150;
+      qrImg.height = 150;
+      qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(formUrl);
+
+      qrContainer.innerHTML = '';
+      qrContainer.appendChild(qrImg);
+    });
+  </script>
 </body>
 </html>
