@@ -318,3 +318,12 @@ textarea {
         right: -6px;
     }
 }
+/* Logo styling */
+.logo {
+    width: 84px;
+    height: auto;
+    display: block;
+    margin: 0 auto 12px;
+    object-fit: contain;
+    border-radius: 8px;
+}
