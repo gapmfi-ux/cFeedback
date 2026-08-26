@@ -1,0 +1,94 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Feedbacks - Master Monitor</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Minimal table styles */
+    .table-wrap { overflow-x:auto; margin-top:20px; }
+    table.feedbacks { width:100%; border-collapse: collapse; font-size:14px; }
+    table.feedbacks th, table.feedbacks td { padding:10px; border:1px solid #e6e9ef; text-align:left; vertical-align:top; }
+    table.feedbacks th { background:#f7fafc; color:#2d3748; font-weight:600; }
+    .center { text-align:center; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Feedbacks — Master Monitor</h1>
+      <p>Live view of all submitted feedbacks</p>
+    </div>
+
+    <div id="status" class="center">Loading feedbacks…</div>
+
+    <div class="table-wrap" id="tableWrap" style="display:none;">
+      <table class="feedbacks" id="feedbackTable">
+        <thead id="tableHead"></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+
+    <div style="margin-top:16px;">
+      <a href="index.html" style="text-decoration:underline; color:#718096;">← Back to front page</a>
+    </div>
+  </div>
+
+  <script>
+    // Replace this with your deployed Apps Script URL
+    const SCRIPT_URL = 'REPLACE_WITH_YOUR_APPS_SCRIPT_URL';
+
+    // JSONP loader
+    function loadFeedbacks() {
+      const callbackName = 'renderFeedbacks';
+      // Create script tag
+      const s = document.createElement('script');
+      s.src = `${SCRIPT_URL}?action=list&callback=${callbackName}&_=${Date.now()}`;
+      s.onerror = function() {
+        document.getElementById('status').textContent = 'Failed to load feedbacks (network error).';
+      };
+      document.head.appendChild(s);
+    }
+
+    // global callback for JSONP
+    function renderFeedbacks(data) {
+      document.getElementById('status').style.display = 'none';
+
+      if (!Array.isArray(data) || data.length === 0) {
+        document.getElementById('status').textContent = 'No feedbacks found.';
+        return;
+      }
+
+      const headers = Object.keys(data[0]);
+      const thead = document.getElementById('tableHead');
+      const tbody = document.getElementById('tableBody');
+
+      // build header row
+      let thHtml = '<tr>';
+      headers.forEach(h => { thHtml += `<th>${h}</th>`; });
+      thHtml += '</tr>';
+      thead.innerHTML = thHtml;
+
+      // build body
+      let rows = '';
+      data.forEach(row => {
+        rows += '<tr>';
+        headers.forEach(h => {
+          let v = row[h] === null || row[h] === undefined ? '' : row[h];
+          v = String(v);
+          // simple escaping
+          v = v.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+          rows += `<td>${v}</td>`;
+        });
+        rows += '</tr>';
+      });
+      tbody.innerHTML = rows;
+
+      document.getElementById('tableWrap').style.display = '';
+    }
+
+    // Kick off
+    loadFeedbacks();
+  </script>
+</body>
+</html>
