@@ -5,11 +5,11 @@ const CONFIG = {
     
     // Rating labels
     RATING_LABELS: {
-        1: 'Poor',
-        2: 'Fair',
-        3: 'Good',
-        4: 'Very Good',
-        5: 'Excellent'
+        1: 'Poor / Not at all',
+        2: 'Fair / Unlikely',
+        3: 'Good / Neutral',
+        4: 'Very Good / Likely',
+        5: 'Excellent / Extremely likely'
     },
     
     // Form fields
@@ -18,12 +18,14 @@ const CONFIG = {
             'overallSatisfaction',
             'qualityOfService',
             'timeliness',
-            'staffFriendliness'
+            'staffFriendliness',
+            'speedOfService',
+            'recommend'
         ],
         textFields: [
             'additionalComments',
             'name',
-            'email'
+            'phone'
         ]
     },
     
@@ -36,7 +38,6 @@ const CONFIG = {
         success: 'Thank you! Your feedback has been submitted successfully.'
     }
 };
-
 
 // Make CONFIG globally available
 window.CONFIG = CONFIG;
