@@ -2,8 +2,8 @@
 // Lightweight Feedback API: submit feedback (fetch JSON POST, fallback to hidden-form+iframe).
 class FeedbackAPI {
   constructor() {
-    // set to your Apps Script web app exec URL
-    this.BASE_URL = 'https://script.google.com/macros/s/YOUR_EXEC_ID/exec';
+    // Prefer CONFIG.SCRIPT_URL if defined, fallback to placeholder
+    this.BASE_URL = (window.CONFIG && window.CONFIG.SCRIPT_URL) ? window.CONFIG.SCRIPT_URL : 'https://script.google.com/macros/s/YOUR_EXEC_ID/exec';
     this.pendingRequests = new Map(); // dedupe identical concurrent writes
     this.debug = false;
   }
@@ -11,12 +11,6 @@ class FeedbackAPI {
   log(...args) { if (this.debug) console.log('[FeedbackAPI]', ...args); }
   error(...args) { console.error('[FeedbackAPI]', ...args); }
 
-  /**
-   * processForm(formData, options)
-   * - Tries JSON POST (fetch) first.
-   * - On failure, falls back to hidden form + iframe technique.
-   * - Resolves with server response object { success: true, message: '...' } or rejects Error.
-   */
   async processForm(formData = {}, options = {}) {
     this.log('processForm called', formData);
     const timeoutMs = options.timeout || 20000;
@@ -160,20 +154,8 @@ class FeedbackAPI {
     }
   }
 
-  /**
-   * Optional: read feedback rows via JSONP (doGet?action=list&callback=...)
-   * Returns server response object via JSONP (script tag).
-   */
-  async listFeedbacks(options = {}) {
-    // Reuse request method pattern but with action 'listFeedbacks' or 'list' depending on server
-    // Assumes your Apps Script supports action=list returning array or { success: true, rows: [...] }
-    const action = options.action || 'list';
-    return this.request ? this.request(action, {}, options) : Promise.reject(new Error('request() not available'));
-  }
-
-  // fallback request using JSONP for convenience
+  // Optional JSONP read helper (if you want to fetch list)
   async request(action, data = {}, options = {}) {
-    // simple jsonp wrapper similar to earlier generic version
     const callbackName = 'fb_cb_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
     const url = new URL(this.BASE_URL);
     url.searchParams.append('action', action);
@@ -202,5 +184,4 @@ class FeedbackAPI {
   }
 }
 
-// expose singleton
 window.FeedbackAPI = new FeedbackAPI();
