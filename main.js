@@ -1,4 +1,4 @@
-// main.js — caller using API.processForm(formData)
+// main.js — caller using FeedbackAPI.processForm(formData)
 document.addEventListener('DOMContentLoaded', function() {
   const form = document.getElementById('feedbackForm');
   if (form) form.addEventListener('submit', handleFormSubmit);
@@ -33,8 +33,8 @@ async function handleFormSubmit(e) {
   if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting...'; }
 
   try {
-    const res = await API.processForm(formData, { timeout: 20000 });
-    // expected res: { success: true, message: '...' }
+    // NOTE: use FeedbackAPI instead of API
+    const res = await FeedbackAPI.processForm(formData, { timeout: 20000 });
     hideLoadingOverlay();
     if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Feedback'; }
 
