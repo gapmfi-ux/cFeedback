@@ -1,4 +1,4 @@
-// main.js — submit using form-encoded POST, replace page with a locked Thank You view (no close/redirect)
+// main.js — submit using form-encoded POST, replace page with a locked minimal Thank You view
 document.addEventListener('DOMContentLoaded', function() {
   const form = document.getElementById('feedbackForm');
   if (form) form.addEventListener('submit', handleFormSubmit);
@@ -46,8 +46,8 @@ async function handleFormSubmit(e) {
     const result = await submitFeedback(formData);
 
     if (result && result.success) {
-      // Replace the page with a minimal locked thank-you view (no close/redirect)
-      showThankYouPageLocked(result.message || CONFIG.MESSAGES.success);
+      // Replace the page with a minimal locked thank-you view (no extra text)
+      showThankYouPageLocked();
       if (form) form.reset();
     } else {
       throw new Error(result && result.error ? result.error : 'Submission failed');
@@ -149,13 +149,12 @@ function hideLoadingOverlay() {
   if (ov) ov.style.display = 'none';
 }
 
-/* --- Replace page with a locked Thank You content (no close/redirect) --- */
-function showThankYouPageLocked(message) {
+/* --- Replace page with a locked minimal Thank You content (no extra text) --- */
+function showThankYouPageLocked() {
   const container = document.querySelector('.container');
   if (!container) {
-    // fallback: show alert only
-    alert(message || CONFIG.MESSAGES.success);
-    // do not redirect or auto-close
+    // fallback: show a minimal alert
+    alert('Thank you for your feedback!');
     return;
   }
 
@@ -163,8 +162,6 @@ function showThankYouPageLocked(message) {
     <div style="text-align:center;padding:40px 18px;">
       <img id="logoImage" alt="GHP Microfinance logo" class="logo" style="width:120px;margin:0 auto 12px;" />
       <h2 style="margin-top:6px;color:#1f2937;">Thank you for your feedback!</h2>
-      <p id="thankYouMessage" style="color:#374151;margin-top:8px;">${escapeHtml(message || CONFIG.MESSAGES.success)}</p>
-      <p style="color:#9ca3af;margin-top:18px;font-size:13px;font-weight:600;">Back navigation is disabled — you cannot return to the form.</p>
     </div>
   `;
 
@@ -185,20 +182,13 @@ function lockBackNavigation() {
     // When a popstate occurs (user presses Back), re-push the thankyou state to keep them here.
     window.addEventListener('popstate', function (e) {
       try {
-        // If the user tries to go back to the locked state, move them forward again
-        if (e.state && e.state.submittedLocked) {
-          history.pushState({thankyou: true}, document.title, location.href);
-        } else {
-          // For any popstate (defensive): always restore thankyou state
-          history.pushState({thankyou: true}, document.title, location.href);
-        }
+        // Always restore thankyou state to prevent going back
+        history.pushState({thankyou: true}, document.title, location.href);
       } catch (err) {
-        // ignore any errors
         console.error('popstate handler error', err);
       }
     }, { once: false });
   } catch (err) {
-    // history manipulation may fail in some contexts; we silently ignore
     console.warn('Could not lock back navigation', err);
   }
 }
