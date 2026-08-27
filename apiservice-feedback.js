@@ -3,6 +3,7 @@ if (!window.API) {
   throw new Error('API core must be loaded before api-feedback.js');
 }
 
+
 // Feedback API convenience wrappers
 API.processForm = async function(formData = {}, options = {}) {
   // Wrap or normalize formData if needed:
