@@ -2,7 +2,7 @@
 
 /* Scope master layout to .master-container so it won't affect other pages */
 .master-container {
-  max-width: 1100px;
+  max-width: 900px;
   width: 95%;
   margin: 24px auto;
   padding: 22px;
