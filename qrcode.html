@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Feedback - GHP Microfinance</title>
   <link rel="stylesheet" href="styles.css">
+  <!-- Meta refresh as a fallback for non-JS clients -->
+  <meta http-equiv="refresh" content="1;url=index.html">
 </head>
 <body>
   <div class="container">
@@ -16,13 +18,14 @@
 
     <div class="qr-section">
       <div class="qr-placeholder" id="qrContainer" aria-hidden="false">
-        <!-- QR will be inserted here -->
+        <!-- QR will be inserted here (fallback) -->
       </div>
       <div class="qr-label">📱 SCAN TO OPEN THE FEEDBACK FORM</div>
       <div class="qr-sub">or open it directly</div>
 
       <div style="margin-top:16px; text-align:center;">
-        <a href="form.html" class="submit-btn" style="display:inline-block; width:auto; padding:10px 18px; text-decoration:none;">Open Form</a>
+        <!-- Manual link points to index.html (the new form) -->
+        <a id="openFormLink" href="index.html" class="submit-btn" style="display:inline-block; width:auto; padding:10px 18px; text-decoration:none;">Open Form</a>
       </div>
     </div>
 
@@ -42,26 +45,37 @@
   <script src="logo.js"></script>
 
   <script>
-    // generate QR code pointing to form.html (relative)
-    document.addEventListener('DOMContentLoaded', function () {
+    // If this page is opened by scanning a printed QR that points here,
+    // redirect immediately to index.html (the new form).
+    (function () {
+      // Build absolute URL for index.html (site root)
+      var origin = window.location.origin || (window.location.protocol + '//' + window.location.host);
+      var basePath = window.location.pathname.replace(/\/[^/]*$/, '/'); // keep directory
+      var targetUrl = origin + basePath + 'index.html';
+
+      // Replace history entry and navigate immediately (no back to QR page)
+      try {
+        window.location.replace(targetUrl);
+        return; // if JS redirect works, we won't run the rest
+      } catch (e) {
+        // ignore and fall back to rendering the page
+      }
+
+      // Fallback: render QR pointing to index.html and update manual link
       const qrContainer = document.getElementById('qrContainer');
-      if (!qrContainer) return;
+      if (qrContainer) {
+        const qrImg = document.createElement('img');
+        qrImg.alt = 'QR code to open feedback form';
+        qrImg.width = 150;
+        qrImg.height = 150;
+        qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(targetUrl);
+        qrContainer.innerHTML = '';
+        qrContainer.appendChild(qrImg);
+      }
 
-      // Build absolute URL for the form page so QR works when scanned
-      const origin = window.location.origin || (window.location.protocol + '//' + window.location.host);
-      // derive base path and append form.html
-      const basePath = window.location.pathname.replace(/\/[^/]*$/, '/');
-      const formUrl = origin + basePath + 'form.html';
-
-      const qrImg = document.createElement('img');
-      qrImg.alt = 'QR code to open feedback form';
-      qrImg.width = 150;
-      qrImg.height = 150;
-      qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(formUrl);
-
-      qrContainer.innerHTML = '';
-      qrContainer.appendChild(qrImg);
-    });
+      const openLink = document.getElementById('openFormLink');
+      if (openLink) openLink.href = targetUrl;
+    })();
   </script>
 </body>
 </html>
