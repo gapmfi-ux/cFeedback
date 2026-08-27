@@ -1,4 +1,4 @@
-/* master.css — redesigned for clarity, airy spacing, modern aesthetics */
+/* master.css — redesigned for clarity, airy spacing, modern aesthetics (updated header wrap) */
 * { box-sizing: border-box; margin: 0; }
 body { background: #f4f7fc; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif; margin: 0; padding: 16px; }
 
@@ -96,21 +96,24 @@ table.feedbacks {
 }
 table.feedbacks thead th {
   position: sticky; top: 0; z-index: 5;
-  background: #f9fcff; padding: 14px 12px;
+  background: #f9fcff; padding: 10px 12px;
   text-align: left; border-bottom: 2px solid #e2ecf9;
-  font-weight: 700; font-size: 12px; letter-spacing: 0.4px;
-  color: #1a2b44; text-transform: uppercase;
+  font-weight: 700; font-size: 11px; letter-spacing: 0.2px;
+  color: #1a2b44; text-transform: none; /* do not uppercase to preserve wording */
+  white-space: normal; /* allow wrap */
+  word-break: break-word;
+  line-height:1.1;
 }
 table.feedbacks tbody td {
-  padding: 14px 12px; border-bottom: 1px solid #ecf3fa;
+  padding: 10px 12px; border-bottom: 1px solid #ecf3fa;
   vertical-align: middle; color: #0f1a2f;
 }
 table.feedbacks tbody tr:hover { background: #f7fbff; }
-.col-timestamp { min-width: 140px; }
+.col-timestamp { min-width: 100px; }
 .col-overall, .col-quality, .col-timeliness, .col-friendliness, .col-speed, .col-recommend { text-align: center; min-width: 60px; }
 .col-name { min-width: 120px; }
 .col-phone { min-width: 110px; }
-.col-comments { min-width: 180px; }
+.col-comments { min-width: 160px; }
 
 /* phone & comments */
 td.phone-cell { color: #1a237e; font-weight: 500; cursor: pointer; text-decoration: underline dotted; }
