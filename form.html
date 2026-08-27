@@ -122,6 +122,15 @@
       <button type="submit" class="submit-btn" id="submitBtn">Submit Feedback</button>
     </form>
 
+    <!-- Submission modal (hidden until a message arrives) -->
+<div id="submissionModal" class="modal-backdrop" style="display:none; align-items:center; justify-content:center;">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="submissionModalTitle" style="max-width:420px;">
+    <div style="text-align:right;"><button id="submissionModalClose" class="btn secondary">Close</button></div>
+    <h3 id="submissionModalTitle" style="margin-top:0; font-size:18px;">Submission</h3>
+    <div id="submissionModalMessage" style="margin-top:8px; color:#334155;"></div>
+  </div>
+</div>
+
     <div id="messageContainer"></div>
 
     <div style="margin-top:10px; text-align:center;">
