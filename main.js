@@ -1,27 +1,7 @@
-// main.js — submit using the simple form-encoded API and show a success modal that closes the page
+// main.js — submit using the simple form-encoded API, show loading, then replace page with a thank-you view
 document.addEventListener('DOMContentLoaded', function() {
   const form = document.getElementById('feedbackForm');
-  const submitBtn = document.getElementById('submitBtn');
-  const messageContainer = document.getElementById('messageContainer');
-
-  // Wire form submit
   if (form) form.addEventListener('submit', handleFormSubmit);
-
-  // Wire modal close button if it exists
-  const modalClose = document.getElementById('submissionModalClose');
-  if (modalClose) {
-    modalClose.addEventListener('click', () => {
-      closeSuccessModalAndWindow();
-    });
-  }
-
-  // Also allow clicking backdrop close (if user clicks on backdrop)
-  const modalBackdrop = document.getElementById('submissionModal');
-  if (modalBackdrop) {
-    modalBackdrop.addEventListener('click', (ev) => {
-      if (ev.target === modalBackdrop) closeSuccessModalAndWindow();
-    });
-  }
 });
 
 /**
@@ -32,7 +12,6 @@ async function handleFormSubmit(e) {
   e.preventDefault();
 
   const submitBtn = document.getElementById('submitBtn');
-  const messageContainer = document.getElementById('messageContainer');
   const form = document.getElementById('feedbackForm');
 
   // Validate all ratings are selected
@@ -57,19 +36,19 @@ async function handleFormSubmit(e) {
     _submissionId: 'sid_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8)
   };
 
-  // Disable submit button
+  // Disable submit button and show loading
   if (submitBtn) {
     submitBtn.disabled = true;
     submitBtn.textContent = 'Submitting...';
   }
+  showLoadingOverlay('Submitting your feedback…');
 
   try {
     const result = await submitFeedback(formData);
 
     if (result && result.success) {
-      // Show modal success (will attempt to close the window when user clicks Close)
-      showSuccessModal(result.message || CONFIG.MESSAGES.success);
-      if (form) form.reset();
+      // Replace the page with a thank-you view
+      showThankYouPage(result.message || CONFIG.MESSAGES.success);
     } else {
       throw new Error(result && result.error ? result.error : 'Submission failed');
     }
@@ -81,10 +60,11 @@ async function handleFormSubmit(e) {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Submit Feedback';
     }
+    hideLoadingOverlay();
   }
 }
 
-/* Helper functions (unchanged) */
+/* --- Helpers: ratings/validation --- */
 function getRatings() {
   return {
     overallSatisfaction: document.querySelector('input[name="overallSatisfaction"]:checked'),
@@ -93,16 +73,11 @@ function getRatings() {
     staffFriendliness: document.querySelector('input[name="staffFriendliness"]:checked')
   };
 }
-
 function validateRatings(ratings) {
   return Object.values(ratings).every(r => r !== null);
 }
 
-/**
- * Submit feedback to the backend (form-encoded to avoid CORS preflight)
- * @param {Object} data - Form data to submit
- * @returns {Promise<Object>} - Parsed JSON response from the server
- */
+/* --- Submit to backend as form-encoded to avoid preflight --- */
 async function submitFeedback(data) {
   const payload = new URLSearchParams();
   payload.append('action', 'processForm');
@@ -110,11 +85,8 @@ async function submitFeedback(data) {
   Object.keys(data).forEach(k => {
     const v = data[k];
     if (v === null || v === undefined) return;
-    if (typeof v === 'object') {
-      payload.append(k, JSON.stringify(v));
-    } else {
-      payload.append(k, String(v));
-    }
+    if (typeof v === 'object') payload.append(k, JSON.stringify(v));
+    else payload.append(k, String(v));
   });
 
   const controller = new AbortController();
@@ -147,87 +119,89 @@ async function submitFeedback(data) {
     return json;
   } catch (err) {
     clearTimeout(timer);
-    if (err && err.name === 'AbortError') {
-      throw new Error('Request timed out');
-    }
+    if (err && err.name === 'AbortError') throw new Error('Request timed out');
     throw err;
   }
 }
 
-/**
- * Show a success modal using #submissionModal and close the page when user clicks Close.
- * @param {string} message
- */
-function showSuccessModal(message) {
-  const modal = document.getElementById('submissionModal');
-  const msgEl = document.getElementById('submissionModalMessage');
-  const closeBtn = document.getElementById('submissionModalClose');
+/* --- Loading overlay --- */
+function showLoadingOverlay(text) {
+  let ov = document.getElementById('submissionOverlay');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'submissionOverlay';
+    ov.className = 'overlay-backdrop';
+    ov.innerHTML = `
+      <div class="overlay-card" role="status" aria-live="polite">
+        <div class="spinner" aria-hidden="true"></div>
+        <div style="margin-top:12px;font-weight:700;color:#1f2937;">${escapeHtml(text || 'Submitting…')}</div>
+      </div>
+    `;
+    document.body.appendChild(ov);
+  } else {
+    const d = ov.querySelector('.overlay-card div:nth-child(2)');
+    if (d) d.textContent = text || 'Submitting…';
+    ov.style.display = 'flex';
+  }
+}
+function hideLoadingOverlay() {
+  const ov = document.getElementById('submissionOverlay');
+  if (ov) ov.style.display = 'none';
+}
 
-  if (!modal || !msgEl) {
-    // fallback to inline message if modal not found
-    showMessage('success', message || CONFIG.MESSAGES.success);
-    // still attempt to close after a short timeout
-    setTimeout(() => closeSuccessModalAndWindow(), 2500);
+/* --- Replace page with Thank You content --- */
+function showThankYouPage(message) {
+  const container = document.querySelector('.container');
+  if (!container) {
+    // fallback to modal alert
+    alert(message || CONFIG.MESSAGES.success);
+    closePageAfterDelay();
     return;
   }
 
-  msgEl.textContent = message || CONFIG.MESSAGES.success;
+  container.innerHTML = `
+    <div style="text-align:center;padding:28px;">
+      <img id="logoImage" alt="GHP Microfinance logo" class="logo" style="width:120px;margin:0 auto 12px;" />
+      <h2 style="margin-top:6px;color:#1f2937;">Thank you for your feedback!</h2>
+      <p id="thankYouMessage" style="color:#374151;margin-top:8px;">${escapeHtml(message || CONFIG.MESSAGES.success)}</p>
+      <div style="margin-top:18px;">
+        <button id="thankYouCloseBtn" class="submit-btn" style="width:auto;padding:10px 18px;">Close</button>
+      </div>
+      <div style="margin-top:12px;color:#94a3b8;font-size:13px;">You can close this window or return to the home page.</div>
+    </div>
+  `;
 
-  // show modal (flex to center content, form.html has style display:none initially)
-  modal.style.display = 'flex';
-
-  // ensure logo renders inside modal (if you show logo there)
+  // Try to (re)load logo into new markup
   try { if (window.LogoManager && typeof window.LogoManager.loadLogo === 'function') window.LogoManager.loadLogo(); } catch(e){}
 
-  // focus the close button for accessibility
+  const closeBtn = document.getElementById('thankYouCloseBtn');
   if (closeBtn) {
-    closeBtn.focus({ preventScroll: true });
+    closeBtn.addEventListener('click', function() {
+      closePageAndFallback();
+    });
   }
+
+  // Auto-close after a short delay if you want (optional). Comment out if not desired:
+  // setTimeout(() => { closePageAndFallback(); }, 8000);
 }
 
-/**
- * Attempt to close the modal AND the browser tab/window.
- * If window.close() is blocked, redirect to index.html as a fallback.
- */
-function closeSuccessModalAndWindow() {
-  const modal = document.getElementById('submissionModal');
-  if (modal) modal.style.display = 'none';
-
-  // First try to close the window (works for windows opened by script or some browsers)
-  try {
-    window.close();
-  } catch (e) {
-    // ignore
-  }
-
-  // If the window didn't close (most modern browsers block close on user-opened tabs),
-  // navigate back to index.html after a short delay so user isn't left stranded.
-  setTimeout(function() {
+/* --- Close helpers --- */
+function closePageAndFallback() {
+  try { window.close(); } catch (e) { /* ignore */ }
+  // If not closed, redirect after short delay
+  setTimeout(() => {
     try {
-      if (!window.closed) {
-        // Prefer closing opener if present (if form opened in a popup and parent should close)
-        try {
-          if (window.opener && !window.opener.closed) {
-            // attempt to close the parent that opened this window (best-effort)
-            try { window.opener.close(); } catch (ignore) {}
-          }
-        } catch (e) {}
-
-        // finally navigate to index.html
-        window.location.href = 'index.html';
-      }
-    } catch (err) {
-      // last resort: do nothing
-      console.error('close fallback failed', err);
+      if (!window.closed) window.location.href = 'index.html';
+    } catch (e) {
+      window.location.href = 'index.html';
     }
   }, 200);
 }
+function closePageAfterDelay() {
+  setTimeout(() => closePageAndFallback(), 2000);
+}
 
-/**
- * Show a simple inline message (error)
- * @param {string} type - 'success' or 'error'
- * @param {string} message
- */
+/* --- Inline message (errors) --- */
 function showMessage(type, message) {
   const messageContainer = document.getElementById('messageContainer');
   const className = type === 'success' ? 'success-message' : 'error-message';
@@ -249,12 +223,18 @@ function showMessage(type, message) {
   }
 }
 
-// Export functions for testing or external use
+/* --- small util --- */
+function escapeHtml(s) {
+  if (!s && s !== 0) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* export for tests */
 window.FeedbackForm = {
   handleFormSubmit,
   getRatings,
   validateRatings,
   submitFeedback,
   showMessage,
-  showSuccessModal
+  showThankYouPage
 };
