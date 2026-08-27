@@ -1,4 +1,4 @@
-/* Mobile-first styles.css (optimized for phones/tablets; larger screens adjusted in media queries) */
+/* Mobile-first styles.css (optimized for phones/tablets; form container stays narrow on desktop) */
 
 /* Reset */
 * {
@@ -21,11 +21,12 @@ body {
 }
 
 /* Main content container (mobile-first, compact) */
+/* KEEP this max-width small so the form doesn't expand to master width */
 .container {
   background: #ffffff;
   border-radius: 12px;
   width: 100%;
-  max-width: 680px; /* comfortable width on larger phones and small tablets */
+  max-width: 680px; /* fixed: form container stays at this width */
   padding: 16px;
   margin: 18px 0;
   box-shadow: 0 12px 36px rgba(0,0,0,0.18);
@@ -252,9 +253,10 @@ table.feedbacks td { font-size: 13px; line-height: 1.2; }
 .rating-group::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 6px; }
 
 /* Larger screens (tablet/desktop) */
+/* NOTE: do NOT change .container max-width here; master page uses .master-container for wide layout */
 @media (min-width: 769px) {
   body { padding: 20px; align-items: center; }
-  .container { padding: 22px 28px; max-width: 1100px; border-radius: 14px; }
+  .container { padding: 22px 28px; border-radius: 14px; } /* keep max-width: 680px */
   .header h1 { font-size: 20px; }
   .header p { font-size: 14px; }
   .logo { width: 140px; }
@@ -268,7 +270,7 @@ table.feedbacks td { font-size: 13px; line-height: 1.2; }
 
 /* Very large screens (desktop wide) */
 @media (min-width: 1200px) {
-  .container { padding: 28px; }
+  .container { padding: 28px; } /* still keep max-width: 680px */
   .logo { width: 160px; }
   .rating-circle { width: 48px; height: 48px; }
 }
