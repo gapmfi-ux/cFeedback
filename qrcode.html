@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Feedback - GHP Microfinance</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img id="logoImage" alt="GHP Microfinance logo" class="logo" />
+      <h1>⭐ WE VALUE YOUR FEEDBACK!</h1>
+      <p>Rate our services and help us improve</p>
+    </div>
+
+    <div class="qr-section">
+      <div class="qr-placeholder" id="qrContainer" aria-hidden="false">
+        <!-- QR will be inserted here -->
+      </div>
+      <div class="qr-label">📱 SCAN TO OPEN THE FEEDBACK FORM</div>
+      <div class="qr-sub">or open it directly</div>
+
+      <div style="margin-top:16px; text-align:center;">
+        <a href="form.html" class="submit-btn" style="display:inline-block; width:auto; padding:10px 18px; text-decoration:none;">Open Form</a>
+      </div>
+    </div>
+
+    <div style="text-align:center; margin-top:12px; color:#718096;">
+      <small>Scan the QR code with a mobile device or click "Open Form".</small>
+    </div>
+
+    <div style="height:16px"></div>
+
+    <div class="footer">
+      Thank you for helping us serve you better!
+    </div>
+  </div>
+
+  <!-- logo data + loader -->
+  <script src="logo-data.js"></script>
+  <script src="logo.js"></script>
+
+  <script>
+    // generate QR code pointing to form.html (relative)
+    document.addEventListener('DOMContentLoaded', function () {
+      const qrContainer = document.getElementById('qrContainer');
+      if (!qrContainer) return;
+
+      // Build absolute URL for the form page so QR works when scanned
+      const origin = window.location.origin || (window.location.protocol + '//' + window.location.host);
+      // derive base path and append form.html
+      const basePath = window.location.pathname.replace(/\/[^/]*$/, '/');
+      const formUrl = origin + basePath + 'form.html';
+
+      const qrImg = document.createElement('img');
+      qrImg.alt = 'QR code to open feedback form';
+      qrImg.width = 150;
+      qrImg.height = 150;
+      qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(formUrl);
+
+      qrContainer.innerHTML = '';
+      qrContainer.appendChild(qrImg);
+    });
+  </script>
+</body>
+</html>
