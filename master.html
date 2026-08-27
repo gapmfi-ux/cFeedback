@@ -5,14 +5,16 @@
   <title>Feedbacks — Master Monitor</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="styles.css">
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     /* Container expanded for desktop monitoring */
     .container {
-      max-width: 1100px;  /* increased width for desktop review */
+      max-width: 1100px;
       width: 95%;
       margin: 24px auto;
       padding: 26px;
-      min-height: 600px;  /* longer page area */
+      min-height: 640px;
     }
 
     /* Page-specific */
@@ -20,6 +22,7 @@
     .kpi-row { display:flex; gap:12px; align-items:stretch; flex-wrap:wrap; }
     .kpi { background:#f7fafc; padding:12px 16px; border-radius:8px; min-width:140px; text-align:center; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
     .kpi .num { font-size:20px; font-weight:700; color:#1a237e; }
+    .kpi .hint { font-size:12px; color:#64748b; margin-top:6px; }
     .controls { display:flex; gap:8px; align-items:center; }
     .table-wrap { overflow-x:auto; margin-top:16px; }
     table.feedbacks { width:100%; border-collapse: collapse; font-size:14px; }
@@ -32,7 +35,6 @@
     .rating-2 { background:#f97316; } /* orange */
     .rating-1 { background:#ef4444; } /* red */
     .small { font-size:13px; color:#718096; }
-    .actions button { margin-right:6px; }
     .search-row { display:flex; gap:8px; align-items:center; margin-top:10px; }
     .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.4); display:none; align-items:center; justify-content:center; z-index:9999; }
     .modal { background:white; padding:18px; border-radius:10px; max-width:840px; width:92%; max-height:80vh; overflow:auto; box-shadow:0 20px 60px rgba(0,0,0,0.25); }
@@ -50,21 +52,21 @@
     .bar-bg { height:12px; background:#eef2f7; border-radius:999px; overflow:hidden; }
     .bar-fill { height:12px; background:linear-gradient(90deg,#3b82f6,#10b981); width:0%; border-radius:999px; }
 
-    /* Desktop-only: wider table text */
-    @media (min-width: 900px) {
-      table.feedbacks th, table.feedbacks td { padding:12px; font-size:15px; }
-    }
+    /* Chart area */
+    .charts { display:flex; gap:18px; margin-top:18px; align-items:stretch; flex-wrap:wrap; }
+    .chart-card { flex:1 1 300px; background:#fff; border:1px solid #eef2f7; padding:12px; border-radius:8px; }
+    .chart-card canvas { width:100% !important; height:240px !important; }
 
-    /* Slight tweaks for smaller desktops */
-    @media (max-width: 900px) {
-      .container { padding:20px; }
-    }
+    /* Row hover to show that row is clickable */
+    table.feedbacks tbody tr { cursor:pointer; }
+    table.feedbacks tbody tr:hover { background:#fbfbff; }
+    td.phone-cell { color:#1a237e; text-decoration:underline; cursor:pointer; }
+    .help-inline { font-size:12px; color:#64748b; margin-top:6px; }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header" style="text-align:center;">
-      <!-- Logo -->
       <img id="logoImage" alt="GHP Microfinance logo" class="logo-inline" />
       <h1 style="margin:6px 0 4px;">Feedbacks — Master Monitor</h1>
       <div class="muted">Live view of submitted feedbacks (sample data initially)</div>
@@ -76,27 +78,40 @@
           <div class="kpi">
             <div class="small">Total submissions</div>
             <div class="num" id="kpiCount">—</div>
+            <div class="hint">Number of rows shown (respecting filters)</div>
           </div>
           <div class="kpi">
             <div class="small">Average overall</div>
             <div class="num" id="kpiAvg">—</div>
+            <div class="hint">Mean of Overall Satisfaction (1–5)</div>
           </div>
           <div class="kpi">
             <div class="small">% 4–5 stars</div>
             <div class="num" id="kpiGoodPct">—</div>
+            <div class="hint">Share of responses rated 4 or 5</div>
+          </div>
+          <div class="kpi">
+            <div class="small">Median overall</div>
+            <div class="num" id="kpiMedian">—</div>
+            <div class="hint">Median of Overall (robust vs outliers)</div>
           </div>
         </div>
 
+        <!-- Help text under KPIs -->
+        <div class="help-inline">KPIs: Average shows central tendency; Median helps when there are outliers; % 4–5 gives quick "good" share. Use filters to focus on periods or segments.</div>
+
         <!-- Service averages -->
-        <div class="service-averages" id="serviceAverages">
-          <!-- Filled by JS -->
-          <!-- Example card structure:
-          <div class="service-card">
-            <div class="title">Quality of Service</div>
-            <div class="num" id="avgQuality">4.2</div>
-            <div class="bar-bg"><div class="bar-fill" style="width:84%"></div></div>
+        <div class="service-averages" id="serviceAverages"></div>
+
+        <div class="charts" style="margin-top:14px;">
+          <div class="chart-card">
+            <strong>Rating distribution (Overall)</strong>
+            <canvas id="distChart"></canvas>
           </div>
-          -->
+          <div class="chart-card">
+            <strong>Submissions by day (last 30 days)</strong>
+            <canvas id="trendChart"></canvas>
+          </div>
         </div>
 
         <div class="search-row" style="margin-top:12px;">
@@ -134,7 +149,6 @@
             <th>Name</th>
             <th>Phone</th>
             <th>Comments</th>
-            <th>Actions</th>
           </tr>
         </thead>
         <tbody id="tableBody"></tbody>
@@ -156,7 +170,7 @@
   <script src="logo.js"></script>
 
   <script>
-    // Put your Apps Script exec URL here to enable live data
+    // Set your Apps Script exec URL here to enable live data
     const SCRIPT_URL = ''; // e.g. 'https://script.google.com/macros/s/XXXXX/exec'
 
     // Sample data for preview
@@ -197,12 +211,25 @@
     let allRows = SAMPLE_DATA.slice();
     let filteredRows = allRows.slice();
 
+    // Chart instances
+    let distChart = null;
+    let trendChart = null;
+
     // Utilities
     function formatTimestamp(ts) {
       try { const d = new Date(ts); return d.toLocaleString(); } catch (e) { return ts; }
     }
     function badgeClass(n) { return 'rating-' + (n>=1 && n<=5 ? n : 0); }
     function escapeHtml(s) { if (!s && s !== 0) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    // Median helper
+    function median(values) {
+      const nums = values.slice().sort((a,b)=>a-b);
+      if (nums.length === 0) return 0;
+      const mid = Math.floor(nums.length / 2);
+      if (nums.length % 2 === 0) return (nums[mid-1] + nums[mid]) / 2;
+      return nums[mid];
+    }
 
     // Compute service averages
     function computeServiceAverages(rows) {
@@ -212,12 +239,11 @@
         { key: 'Timeliness', label: 'Timeliness' },
         { key: 'Staff Friendliness', label: 'Staff Friendliness' }
       ];
-      const result = metrics.map(m => {
+      return metrics.map(m => {
         const vals = rows.map(r => Number(r[m.key] || 0)).filter(v => v > 0);
         const avg = vals.length ? (vals.reduce((s,v)=>s+v,0)/vals.length) : 0;
         return { key: m.key, label: m.label, avg: avg, count: vals.length };
       });
-      return result;
     }
 
     // Render service averages UI
@@ -232,7 +258,7 @@
         card.innerHTML = `
           <div class="title">${escapeHtml(s.label)}</div>
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-            <div style="font-size:22px;font-weight:700;color:#0f172a;">${s.avg ? s.avg.toFixed(2) : '—'}</div>
+            <div style="font-size:18px;font-weight:700;color:#0f172a;">${s.avg ? s.avg.toFixed(2) : '—'}</div>
             <div class="small" style="color:#64748b;">${s.count} rated</div>
           </div>
           <div class="bar-bg"><div class="bar-fill" style="width:${pct}%;"></div></div>
@@ -241,23 +267,111 @@
       });
     }
 
-    // Render KPIs
+    // Render KPIs (including median)
     function renderKPIs(rows) {
       const count = rows.length;
-      const avg = (rows.reduce((s,r)=>s + Number(r['Overall Satisfaction']||0),0) / (count||1));
-      const goodCount = rows.filter(r => Number(r['Overall Satisfaction']) >= 4).length;
+      const overallVals = rows.map(r => Number(r['Overall Satisfaction']||0)).filter(v=>v>0);
+      const avg = overallVals.length ? (overallVals.reduce((s,v)=>s+v,0) / overallVals.length) : 0;
+      const goodCount = overallVals.filter(v => v >= 4).length;
+      const med = median(overallVals);
       document.getElementById('kpiCount').textContent = count;
       document.getElementById('kpiAvg').textContent = count ? avg.toFixed(2) : '—';
-      document.getElementById('kpiGoodPct').textContent = count ? `${Math.round(100 * goodCount / count)}%` : '—';
+      document.getElementById('kpiGoodPct').textContent = count ? `${Math.round(100 * goodCount / (count||1))}%` : '—';
+      document.getElementById('kpiMedian').textContent = overallVals.length ? med : '—';
       renderServiceAverages(rows);
     }
 
-    // Render table
+    // Build distribution data for Chart.js
+    function distributionCounts(rows) {
+      const counts = [0,0,0,0,0]; // index 0 -> 1-star
+      rows.forEach(r => {
+        const n = Number(r['Overall Satisfaction']||0);
+        if (n >=1 && n <=5) counts[n-1] += 1;
+      });
+      return counts;
+    }
+
+    // Build trend data (last 30 days)
+    function trendByDay(rows, days = 30) {
+      // generate labels for last `days` days (today included)
+      const labels = [];
+      const map = {}; // dateStr -> count
+      for (let i = days-1; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const key = d.toISOString().slice(0,10); // YYYY-MM-DD
+        labels.push(key);
+        map[key] = 0;
+      }
+      rows.forEach(r => {
+        const d = new Date(r.Timestamp);
+        if (isNaN(d)) return;
+        const key = d.toISOString().slice(0,10);
+        if (map.hasOwnProperty(key)) map[key] += 1;
+      });
+      const data = labels.map(l => map[l]||0);
+      return { labels, data };
+    }
+
+    // Create / update charts
+    function renderCharts(rows) {
+      // distribution
+      const distCounts = distributionCounts(rows);
+      const distCtx = document.getElementById('distChart').getContext('2d');
+      if (distChart) distChart.destroy();
+      distChart = new Chart(distCtx, {
+        type: 'bar',
+        data: {
+          labels: ['1','2','3','4','5'],
+          datasets: [{
+            label: 'Count',
+            data: distCounts,
+            backgroundColor: ['#ef4444','#f97316','#f59e0b','#3b82f6','#10b981'],
+          }]
+        },
+        options: {
+          plugins: { legend: { display:false } },
+          scales: {
+            y: { beginAtZero:true, ticks: { precision:0 } }
+          }
+        }
+      });
+
+      // trend
+      const t = trendByDay(rows, 30);
+      const trendCtx = document.getElementById('trendChart').getContext('2d');
+      if (trendChart) trendChart.destroy();
+      trendChart = new Chart(trendCtx, {
+        type: 'line',
+        data: {
+          labels: t.labels,
+          datasets: [{
+            label: 'Submissions',
+            data: t.data,
+            fill: true,
+            backgroundColor: 'rgba(59,130,246,0.12)',
+            borderColor: '#3b82f6',
+            tension: 0.25,
+            pointRadius: 2
+          }]
+        },
+        options: {
+          plugins: { legend: { display:false } },
+          scales: {
+            x: { display: true, ticks: { maxRotation:45, minRotation:0 } },
+            y: { beginAtZero:true, ticks: { precision:0 } }
+          }
+        }
+      });
+    }
+
+    // Render table (no Actions column)
     function renderTable(rows) {
       const tbody = document.getElementById('tableBody');
       tbody.innerHTML = '';
       rows.forEach((r, idx) => {
         const tr = document.createElement('tr');
+        tr.dataset.idx = idx;
         tr.innerHTML = `
           <td>${escapeHtml(formatTimestamp(r.Timestamp))}</td>
           <td><span class="badge ${badgeClass(r['Overall Satisfaction'])}">${escapeHtml(r['Overall Satisfaction'])}</span></td>
@@ -265,29 +379,31 @@
           <td>${escapeHtml(r['Timeliness'])}</td>
           <td>${escapeHtml(r['Staff Friendliness'])}</td>
           <td>${escapeHtml(r['Name'])}</td>
-          <td>${escapeHtml(r['Phone'])}</td>
-          <td>${escapeHtml((r['Additional Comments']||'').slice(0,80))}${(r['Additional Comments'] && r['Additional Comments'].length>80)?'…':''}</td>
-          <td class="actions">
-            <button data-idx="${idx}" class="viewBtn btn secondary">View</button>
-            <button data-phone="${escapeHtml(r['Phone']||'')}" class="copyBtn btn secondary">Copy phone</button>
-          </td>
+          <td class="phone-cell">${escapeHtml(r['Phone'])}</td>
+          <td>${escapeHtml((r['Additional Comments']||'').slice(0,120))}${(r['Additional Comments'] && r['Additional Comments'].length>120)?'…':''}</td>
         `;
         tbody.appendChild(tr);
       });
 
-      // handlers
-      Array.from(document.getElementsByClassName('viewBtn')).forEach(b=>{
-        b.addEventListener('click', (e)=>{
-          const i = Number(e.currentTarget.dataset.idx);
-          openModal(filteredRows[i]);
+      // Row click opens modal
+      Array.from(tbody.querySelectorAll('tr')).forEach(tr => {
+        tr.addEventListener('click', (e) => {
+          const idx = Number(tr.dataset.idx);
+          openModal(filteredRows[idx]);
         });
       });
-      Array.from(document.getElementsByClassName('copyBtn')).forEach(b=>{
-        b.addEventListener('click', async (e)=>{
-          const phone = e.currentTarget.dataset.phone || '';
+
+      // Phone cell click copies phone
+      Array.from(tbody.querySelectorAll('.phone-cell')).forEach(td => {
+        td.addEventListener('click', async (e) => {
+          e.stopPropagation(); // do not open modal
+          const phone = td.textContent.trim();
           if (!phone) { alert('No phone available for this entry.'); return; }
           try {
             await navigator.clipboard.writeText(phone);
+            // simple feedback
+            td.style.background = '#ecfdf5';
+            setTimeout(()=> td.style.background = '', 700);
             alert('Phone copied: ' + phone);
           } catch (err) {
             const ta = document.createElement('textarea'); ta.value = phone; document.body.appendChild(ta); ta.select();
@@ -331,6 +447,7 @@
       });
       renderKPIs(filteredRows);
       renderTable(filteredRows);
+      renderCharts(filteredRows);
     }
     document.getElementById('btnApplyFilters').addEventListener('click', applyFilters);
 
@@ -357,6 +474,7 @@
       document.getElementById('status').textContent = 'Showing sample data';
       renderKPIs(filteredRows);
       renderTable(filteredRows);
+      renderCharts(filteredRows);
     });
 
     // Live JSONP load
@@ -382,6 +500,7 @@
           document.getElementById('status').textContent = 'Loaded live data (' + allRows.length + ' rows)';
           renderKPIs(filteredRows);
           renderTable(filteredRows);
+          renderCharts(filteredRows);
         } finally {
           const script = document.getElementById('_jsonp_master');
           if (script) script.remove();
@@ -402,6 +521,7 @@
     // Initial render (sample)
     renderKPIs(filteredRows);
     renderTable(filteredRows);
+    renderCharts(filteredRows);
 
     // Auto-load live if SCRIPT_URL set
     if (SCRIPT_URL) {
