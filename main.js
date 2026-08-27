@@ -1,24 +1,20 @@
-// main.js — caller using FeedbackAPI.processForm(formData) (defensive)
+/// main.js — fetch-only submission via FeedbackAPI
 document.addEventListener('DOMContentLoaded', function() {
   const form = document.getElementById('feedbackForm');
   if (form) form.addEventListener('submit', handleFormSubmit);
-
-  // quick debug: log whether FeedbackAPI loaded
-  console.log('Main init: FeedbackAPI', typeof window.FeedbackAPI !== 'undefined' ? 'present' : 'MISSING', 'API', typeof window.API !== 'undefined' ? 'present' : 'MISSING');
+  console.log('Main init: FeedbackAPI', typeof window.FeedbackAPI !== 'undefined' ? 'present' : 'MISSING');
 });
 
-async function handleFormSubmit(e) {
+async function handleFormSubmit(e){
   e.preventDefault();
   const submitBtn = document.getElementById('submitBtn');
 
-  // Validate ratings
   const ratings = getRatings();
   if (!validateRatings(ratings)) {
     showInlineError('Please rate all categories before submitting.');
     return;
   }
 
-  // Gather form data
   const formData = {
     overallSatisfaction: String(ratings.overallSatisfaction.value),
     qualityOfService: String(ratings.qualityOfService.value),
@@ -31,27 +27,19 @@ async function handleFormSubmit(e) {
     phone: (document.getElementById('phone') || {}).value.trim() || ''
   };
 
-  // Show loading
   showLoadingOverlay('Submitting your feedback…');
   if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting...'; }
 
-  // Pick available API client (FeedbackAPI preferred, fallback to API)
-  const apiClient = (window.FeedbackAPI && typeof window.FeedbackAPI.processForm === 'function')
-    ? window.FeedbackAPI
-    : ((window.API && typeof window.API.processForm === 'function') ? window.API : null);
-
-  if (!apiClient) {
+  const client = window.FeedbackAPI;
+  if (!client || typeof client.processForm !== 'function') {
     hideLoadingOverlay();
     if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Feedback'; }
-    const msg = 'Submission failed: no API client available (FeedbackAPI or API).';
-    console.error(msg);
-    showInlineError(msg);
+    showInlineError('Submission failed: client not available.');
     return;
   }
 
   try {
-    const res = await apiClient.processForm(formData, { timeout: 20000 });
-    // expected res: { success: true, message: '...' }
+    const res = await client.processForm(formData, { timeout: 20000 });
     hideLoadingOverlay();
     if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Feedback'; }
 
@@ -63,11 +51,13 @@ async function handleFormSubmit(e) {
   } catch (err) {
     hideLoadingOverlay();
     if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Feedback'; }
-    showInlineError('Submission failed: ' + (err && err.message ? err.message : 'unknown error'));
+    // If CORS error occurs the browser will throw a TypeError with little detail
+    showInlineError('Submission failed: ' + (err && err.message ? err.message : 'Network or CORS error'));
     console.error('processForm error', err);
   }
 }
 
+/* Keep helper functions (getRatings(), validateRatings(), showLoadingOverlay(), hideLoadingOverlay(), showThankYouReplace(), showInlineError(), escapeHtml()) as you already have them. */
 /* Helpers (unchanged) */
 
 function getRatings() {
