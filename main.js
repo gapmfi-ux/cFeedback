@@ -1,13 +1,10 @@
-// main.js — iframe-postMessage submit with loading + in-page thank-you replacement
+// main.js — improved message acceptance and longer timeout
 document.addEventListener('DOMContentLoaded', function() {
   const form = document.getElementById('feedbackForm');
   if (form) form.addEventListener('submit', handleFormSubmit);
 
-  // Global listener left for safety; main listener is attached per-submission and validated by source
-  window.addEventListener('message', function(ev) {
-    // ignore unrelated messages here (we handle per-submission)
-    // This global listener does nothing so extension noise is ignored.
-  });
+  // global no-op to avoid extension noise; real handling is per-submission
+  window.addEventListener('message', () => {});
 });
 
 async function handleFormSubmit(e) {
@@ -34,10 +31,9 @@ async function handleFormSubmit(e) {
     phone: (document.getElementById('phone') || {}).value.trim() || ''
   };
 
-  // Ensure no leftover temp elements
   removeTempSubmissionElements();
 
-  // Create hidden iframe (must have name so form.target works)
+  // Create hidden iframe
   const iframeId = 'submission_iframe';
   const iframe = document.createElement('iframe');
   iframe.style.display = 'none';
@@ -70,45 +66,58 @@ async function handleFormSubmit(e) {
   // Disable submit UI
   if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting...'; }
 
-  // Prepare one-time message listener that accepts ONLY messages from the iframe window
+  // Determine allowed origin (Apps Script exec URL origin)
+  let allowedOrigin = 'https://script.google.com';
+  try { allowedOrigin = new URL(CONFIG.SCRIPT_URL).origin; } catch (err) { /* fallback used */ }
+
+  // One-time message handler
   let handled = false;
   const messageListener = function(ev) {
     try {
-      // Only accept messages from the iframe window we created
-      if (ev.source !== iframe.contentWindow) {
-        // ignore messages from other windows / extensions
+      // Accept message if origin matches the Apps Script origin AND payload looks correct.
+      if (ev.origin !== allowedOrigin) {
+        // ignore unrelated origins (extensions, others)
+        console.debug('Ignored postMessage from origin', ev.origin);
         return;
       }
-    } catch (ignored) {
-      // If iframe.contentWindow not accessible, ignore
+    } catch (err) {
+      console.warn('Error checking origin', err);
       return;
     }
 
+    // Accept if payload is object and contains success or error field
+    const data = ev.data || {};
+    if (!data || typeof data !== 'object') {
+      console.debug('Ignored postMessage with invalid data', ev.data);
+      return;
+    }
+
+    // Mark handled
     handled = true;
-    // Clean up timeout
+    // Clear timeout (defined below)
     if (timeoutId) clearTimeout(timeoutId);
 
-    // Hide loading overlay
+    // Hide overlay and re-enable UI
     hideLoadingOverlay();
-
-    // Re-enable submit UI
     if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Feedback'; }
 
-    const data = ev.data || {};
-    if (data && typeof data === 'object' && data.success) {
-      // Replace form with thank-you panel
+    // Process payload
+    if (data.success) {
       showThankYouReplace(data.message || 'Thank you — your feedback has been received.');
-      // remove temp elements
-      removeTempSubmissionElements();
+      console.log('Submission success:', data);
     } else {
-      // show error modal / message
-      const err = (data && data.error) ? data.error : 'Submission failed. Please try again.';
-      showTemporaryError(err);
-      removeTempSubmissionElements();
+      const errMsg = data.error || 'Submission failed. Please try again.';
+      showTemporaryError(errMsg);
+      console.warn('Submission error payload:', data);
     }
+
+    // cleanup temp elements
+    removeTempSubmissionElements();
+    // remove listener
+    try { window.removeEventListener('message', messageListener); } catch (e){}
   };
 
-  window.addEventListener('message', messageListener);
+  window.addEventListener('message', messageListener, false);
 
   // Submit the form
   try {
@@ -119,12 +128,12 @@ async function handleFormSubmit(e) {
     if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Feedback'; }
     showTemporaryError('Submission failed (client). Please try again.');
     removeTempSubmissionElements();
-    window.removeEventListener('message', messageListener);
+    try { window.removeEventListener('message', messageListener); } catch(e){}
     return;
   }
 
-  // Timeout: if no response within TIMEOUT_MS, show error and cleanup
-  const TIMEOUT_MS = 12000;
+  // Timeout guard (longer)
+  const TIMEOUT_MS = 20000; // 20s
   const timeoutId = setTimeout(() => {
     if (handled) return;
     hideLoadingOverlay();
@@ -135,6 +144,7 @@ async function handleFormSubmit(e) {
   }, TIMEOUT_MS);
 }
 
+/* remove temporary iframe/form */
 function removeTempSubmissionElements() {
   const iframe = document.getElementById('submission_iframe');
   if (iframe) iframe.remove();
@@ -142,7 +152,7 @@ function removeTempSubmissionElements() {
   if (tempForm) tempForm.remove();
 }
 
-/* Helpers: ratings */
+/* Ratings helpers */
 function getRatings() {
   return {
     overallSatisfaction: document.querySelector('input[name="overallSatisfaction"]:checked'),
@@ -157,7 +167,7 @@ function validateRatings(ratings) {
   return Object.values(ratings).every(r => r !== null);
 }
 
-/* Loading overlay */
+/* Loading overlay functions (unchanged from earlier) */
 function showLoadingOverlay(text) {
   let ov = document.getElementById('submissionOverlay');
   if (!ov) {
@@ -181,14 +191,10 @@ function hideLoadingOverlay() {
   if (ov) ov.style.display = 'none';
 }
 
-/* Replace form with a thank-you panel in-place */
+/* Replacement thank-you UI (unchanged) */
 function showThankYouReplace(message) {
   const container = document.querySelector('.container');
-  if (!container) {
-    // fallback to modal
-    showTemporaryError(message);
-    return;
-  }
+  if (!container) { showTemporaryError(message); return; }
   container.innerHTML = `
     <div style="text-align:center;padding:28px;">
       <img id="logoImage" alt="GHP Microfinance logo" class="logo" style="width:120px;margin:0 auto 12px;" />
@@ -201,27 +207,20 @@ function showThankYouReplace(message) {
     </div>
   `;
 
-  // Attempt to reload logo (logo.js will set it)
   try { if (window.LogoManager && typeof window.LogoManager.loadLogo === 'function') window.LogoManager.loadLogo(); } catch(e){}
 
-  // Close button behavior: try to close window, otherwise redirect to index.html
   const closeBtn = document.getElementById('thankYouCloseBtn');
   if (closeBtn) {
     closeBtn.addEventListener('click', function() {
       try { window.close(); } catch (e) {}
-      // If window.close didn't work, redirect to index.html
-      setTimeout(function() {
-        if (!window.closed) window.location.href = 'index.html';
-      }, 200);
+      setTimeout(function() { if (!window.closed) window.location.href = 'index.html'; }, 200);
     });
   }
 }
 
-/* Temporary error display (in place of previous modal) */
 function showTemporaryError(message) {
   const container = document.querySelector('.container');
   if (!container) return alert(message);
-  // insert a small inline error banner above the form
   let err = document.getElementById('inlineErrorBanner');
   if (!err) {
     err = document.createElement('div');
@@ -237,7 +236,6 @@ function showTemporaryError(message) {
   setTimeout(()=> { if (err) err.remove(); }, 7000);
 }
 
-/* Utility */
 function escapeHtml(s) {
   if (!s && s !== 0) return '';
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
