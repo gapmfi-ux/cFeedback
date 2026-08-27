@@ -1,150 +1,21 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <title>Redirecting…</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Feedback Form - GHP Microfinance</title>
-  <link rel="stylesheet" href="styles.css">
+  <!-- Fallback meta refresh -->
+  <meta http-equiv="refresh" content="0;url=https://gapmfi-ux.github.io/cFeedback/">
 </head>
 <body>
-  <div class="container">
-    <!-- Header -->
-    <div class="header">
-      <img id="logoImage" alt="GHP Microfinance logo" class="logo" />
-      <h1>⭐ WE VALUE YOUR FEEDBACK!</h1>
-      <p>Rate our services and help us improve</p>
-    </div>
-
-    <!-- Short steps -->
-    <div class="instructions" style="margin-bottom:8px;">
-      <div class="step">
-        <div class="step-number">1</div>
-        <div class="step-text">Complete Form</div>
-      </div>
-      <div class="step">
-        <div class="step-number">2</div>
-        <div class="step-text">Submit Feedback</div>
-      </div>
-    </div>
-
-    <!-- Feedback Form -->
-    <form id="feedbackForm">
-      <!-- Overall Satisfaction -->
-      <div class="form-group">
-        <label>Overall Satisfaction</label>
-        <div class="rating-group" data-rating="overallSatisfaction">
-          <label class="rating-option"><input type="radio" name="overallSatisfaction" value="1"><span class="rating-circle">1</span><span class="rating-label">Poor</span></label>
-          <label class="rating-option"><input type="radio" name="overallSatisfaction" value="2"><span class="rating-circle">2</span><span class="rating-label">Fair</span></label>
-          <label class="rating-option"><input type="radio" name="overallSatisfaction" value="3"><span class="rating-circle">3</span><span class="rating-label">Good</span></label>
-          <label class="rating-option"><input type="radio" name="overallSatisfaction" value="4"><span class="rating-circle">4</span><span class="rating-label">Very Good</span></label>
-          <label class="rating-option"><input type="radio" name="overallSatisfaction" value="5"><span class="rating-circle">5</span><span class="rating-label">Excellent</span></label>
-        </div>
-      </div>
-
-      <!-- Quality of Service -->
-      <div class="form-group">
-        <label>Quality of Service</label>
-        <div class="rating-group" data-rating="qualityOfService">
-          <label class="rating-option"><input type="radio" name="qualityOfService" value="1"><span class="rating-circle">1</span><span class="rating-label">Poor</span></label>
-          <label class="rating-option"><input type="radio" name="qualityOfService" value="2"><span class="rating-circle">2</span><span class="rating-label">Fair</span></label>
-          <label class="rating-option"><input type="radio" name="qualityOfService" value="3"><span class="rating-circle">3</span><span class="rating-label">Good</span></label>
-          <label class="rating-option"><input type="radio" name="qualityOfService" value="4"><span class="rating-circle">4</span><span class="rating-label">Very Good</span></label>
-          <label class="rating-option"><input type="radio" name="qualityOfService" value="5"><span class="rating-circle">5</span><span class="rating-label">Excellent</span></label>
-        </div>
-      </div>
-
-      <!-- Timeliness -->
-      <div class="form-group">
-        <label>Timeliness</label>
-        <div class="rating-group" data-rating="timeliness">
-          <label class="rating-option"><input type="radio" name="timeliness" value="1"><span class="rating-circle">1</span><span class="rating-label">Poor</span></label>
-          <label class="rating-option"><input type="radio" name="timeliness" value="2"><span class="rating-circle">2</span><span class="rating-label">Fair</span></label>
-          <label class="rating-option"><input type="radio" name="timeliness" value="3"><span class="rating-circle">3</span><span class="rating-label">Good</span></label>
-          <label class="rating-option"><input type="radio" name="timeliness" value="4"><span class="rating-circle">4</span><span class="rating-label">Very Good</span></label>
-          <label class="rating-option"><input type="radio" name="timeliness" value="5"><span class="rating-circle">5</span><span class="rating-label">Excellent</span></label>
-        </div>
-      </div>
-
-      <!-- Staff Friendliness -->
-      <div class="form-group">
-        <label>Staff Friendliness</label>
-        <div class="rating-group" data-rating="staffFriendliness">
-          <label class="rating-option"><input type="radio" name="staffFriendliness" value="1"><span class="rating-circle">1</span><span class="rating-label">Poor</span></label>
-          <label class="rating-option"><input type="radio" name="staffFriendliness" value="2"><span class="rating-circle">2</span><span class="rating-label">Fair</span></label>
-          <label class="rating-option"><input type="radio" name="staffFriendliness" value="3"><span class="rating-circle">3</span><span class="rating-label">Good</span></label>
-          <label class="rating-option"><input type="radio" name="staffFriendliness" value="4"><span class="rating-circle">4</span><span class="rating-label">Very Good</span></label>
-          <label class="rating-option"><input type="radio" name="staffFriendliness" value="5"><span class="rating-circle">5</span><span class="rating-label">Excellent</span></label>
-        </div>
-      </div>
-
-      <!-- Speed of Service -->
-      <div class="form-group">
-        <label>Speed of Service</label>
-        <div class="rating-group" data-rating="speedOfService">
-          <label class="rating-option"><input type="radio" name="speedOfService" value="1"><span class="rating-circle">1</span><span class="rating-label">Poor</span></label>
-          <label class="rating-option"><input type="radio" name="speedOfService" value="2"><span class="rating-circle">2</span><span class="rating-label">Fair</span></label>
-          <label class="rating-option"><input type="radio" name="speedOfService" value="3"><span class="rating-circle">3</span><span class="rating-label">Good</span></label>
-          <label class="rating-option"><input type="radio" name="speedOfService" value="4"><span class="rating-circle">4</span><span class="rating-label">Very Good</span></label>
-          <label class="rating-option"><input type="radio" name="speedOfService" value="5"><span class="rating-circle">5</span><span class="rating-label">Excellent</span></label>
-        </div>
-      </div>
-
-      <!-- Recommend (1-5) -->
-      <div class="form-group">
-        <label>How likely are you to recommend GAP to a friend or colleague? <span class="optional"></span></label>
-        <div class="rating-group" data-rating="recommend">
-          <label class="rating-option"><input type="radio" name="recommend" value="1"><span class="rating-circle">1</span><span class="rating-label">Not at all</span></label>
-          <label class="rating-option"><input type="radio" name="recommend" value="2"><span class="rating-circle">2</span><span class="rating-label">Unlikely</span></label>
-          <label class="rating-option"><input type="radio" name="recommend" value="3"><span class="rating-circle">3</span><span class="rating-label">Neutral</span></label>
-          <label class="rating-option"><input type="radio" name="recommend" value="4"><span class="rating-circle">4</span><span class="rating-label">Likely</span></label>
-          <label class="rating-option"><input type="radio" name="recommend" value="5"><span class="rating-circle">5</span><span class="rating-label">Extremely likely</span></label>
-        </div>
-      </div>
-
-      <!-- Additional Comments -->
-      <div class="form-group">
-        <label>Additional Comments</label>
-        <textarea id="additionalComments" placeholder="Tell us more about your experience..."></textarea>
-      </div>
-
-      <!-- Optional Fields -->
-      <div class="form-group">
-        <label>Name <span class="optional">(optional)</span></label>
-        <input type="text" id="name" placeholder="Your name">
-      </div>
-
-      <div class="form-group">
-        <label>Phone <span class="optional">(optional)</span></label>
-        <input type="tel" id="phone" placeholder="+233 24 000 0000">
-        <span class="phone-hint">Optional — include country code if possible</span>
-      </div>
-
-      <button type="submit" class="submit-btn" id="submitBtn">Submit Feedback</button>
-    </form>
-
-    <!-- Submission modal (hidden until a message arrives) -->
-<div id="submissionModal" class="modal-backdrop" style="display:none; align-items:center; justify-content:center;">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="submissionModalTitle" style="max-width:420px;">
-    <div style="text-align:right;"><button id="submissionModalClose" class="btn secondary">Close</button></div>
-    <h3 id="submissionModalTitle" style="margin-top:0; font-size:18px;">Submission</h3>
-    <div id="submissionModalMessage" style="margin-top:8px; color:#334155;"></div>
-  </div>
-</div>
-
-    <div id="messageContainer"></div>
-
-    <div style="margin-top:10px; text-align:center;">
-      <a href="index.html" style="color:#718096; text-decoration:underline;">← Back to QR page</a>
-    </div>
-
-    <div class="footer">
-      Thank you for helping us serve you better!
-    </div>
-  </div>
-
-  <script src="logo-data.js"></script>
-  <script src="logo.js"></script>
-  <script src="config.js"></script>
-   <script src="main.js"></script>
+  <p>Redirecting to the feedback form… If you are not redirected automatically, <a href="https://gapmfi-ux.github.io/cFeedback/">click here</a>.</p>
+  <script>
+    // Immediate redirect without leaving this redirect page in history
+    try {
+      window.location.replace('https://gapmfi-ux.github.io/cFeedback/');
+    } catch (e) {
+      window.location.href = 'https://gapmfi-ux.github.io/cFeedback/';
+    }
+  </script>
 </body>
 </html>
