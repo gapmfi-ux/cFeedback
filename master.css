@@ -1,209 +1,136 @@
-/* master.css — styles only used by master.html (KPIs, table tweaks, top-actions, modal) */
+/* master.css — compact layout for master.html (reduced spacing, smaller fonts, vertical scrolling) */
 
-/* Scope master layout to .master-container so it won't affect other pages */
-.master-container {
-  max-width: 1000px;
-  width: 95%;
-  margin: 24px auto;
-  padding: 18px;
-  background: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 8px 30px rgba(2,6,23,0.05);
+:root {
+  --bg: #ffffff;
+  --muted: #64748b;
+  --brand: #1a237e;
+  --border: #e6eef7;
+  --thin-border: #e2e8f0;
 }
 
-/* Top actions - left aligned now for date filters + buttons */
+/* Page container — narrower and tighter */
+.master-container {
+  max-width: 760px;    /* reduced width */
+  width: 95%;
+  margin: 14px auto;   /* reduced top/bottom margin */
+  padding: 12px;
+  background: var(--bg);
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(2,6,23,0.04);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  font-size: 13px;     /* slightly smaller base */
+  color: #0f172a;
+}
+
+/* Top actions */
 .top-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
-
-/* left group (filters) and right group (controls) */
 .top-actions .left,
-.top-actions .right {
-  display:flex;
-  gap:10px;
-  align-items:center;
-}
-
-/* Buttons */
+.top-actions .right { display:flex; gap:8px; align-items:center; }
 .top-actions .btn {
-  padding: 8px 12px;
+  padding: 6px 10px;
   border-radius: 8px;
   border: none;
   cursor: pointer;
-  background: #1a237e;
+  background: var(--brand);
   color: white;
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 13px;
 }
 .top-actions .btn.secondary {
-  background: #edf2ff;
-  color: #1a237e;
-  border: 1px solid #cbd5e0;
+  background: #f8fafc;
+  color: var(--brand);
+  border: 1px solid var(--border);
+  font-weight: 600;
 }
 .top-actions input[type="date"],
 .top-actions select {
-  padding: 8px 10px;
+  padding: 6px 8px;
   border-radius: 8px;
-  border: 1px solid #e6eef7;
+  border: 1px solid var(--border);
   background: white;
   font-size: 13px;
 }
 
-/* KPI row and cards */
-.kpi-row {
-  display: flex;
-  gap: 12px;
-  align-items: stretch;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
-}
-.kpi {
-  background: #f7fafc;
-  padding: 10px 12px;
-  border-radius: 8px;
-  min-width: 120px;
-  text-align: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-}
-.kpi .num {
-  font-size: 18px;
-  font-weight: 700;
-  color: #1a237e;
-}
-.kpi .hint {
-  font-size: 12px;
-  color: #64748b;
-  margin-top: 6px;
-}
+/* KPI row (tighter) */
+.kpi-row { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:8px; }
+.kpi { background:#f7fafc; padding:8px 10px; border-radius:8px; min-width:110px; text-align:center; box-shadow:0 2px 6px rgba(0,0,0,0.03); }
+.kpi .num { font-size:16px; font-weight:800; color:var(--brand); }
+.kpi .small, .kpi .hint { font-size:12px; color:var(--muted); margin-top:6px; }
 
 /* small helper text */
-.help-inline {
-  font-size: 13px;
-  color: #64748b;
-  margin-bottom: 8px;
-}
+.help-inline { font-size:12px; color:var(--muted); margin-bottom:8px; }
 
-/* service average cards */
-.service-averages {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 12px;
-  margin-bottom: 12px;
-}
-.service-card {
-  background: #fff;
-  border: 1px solid #eef2f7;
-  padding: 10px;
-  border-radius: 8px;
-  min-width: 200px;
-  flex: 1 1 200px;
-}
-.service-card .title {
-  font-weight: 700;
-  color: #334155;
-  margin-bottom: 6px;
-}
-.bar-bg {
-  height: 10px;
-  background: #eef2f7;
-  border-radius: 999px;
-  overflow: hidden;
-}
-.bar-fill {
-  height: 10px;
-  background: linear-gradient(90deg,#3b82f6,#10b981);
-  width: 0%;
-  border-radius: 999px;
-}
+/* service averages (compact) */
+.service-averages { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; margin-bottom:10px; }
+.service-card { background:#fff; border:1px solid var(--thin-border); padding:8px; border-radius:8px; min-width:150px; flex:1 1 150px; }
+.service-card .title { font-weight:700; color:#334155; margin-bottom:6px; font-size:13px; }
+.bar-bg { height:8px; background:#eef2f7; border-radius:999px; overflow:hidden; }
+.bar-fill { height:8px; background:linear-gradient(90deg,#3b82f6,#10b981); width:0%; border-radius:999px; }
 
-/* table tweaks */
-/* wrapper keeps header visible and body scrollable — set height to show ~10 rows */
+/* Table wrapper: vertical scrolling only (no horizontal scroll) */
 .table-wrap {
-  overflow: auto;
-  margin-top: 12px;
-  border: 1px solid #eef2f7;
-  border-radius: 8px;
-  max-height: 480px; /* roughly 10 rows; adjust if needed */
+  overflow-y: auto;
+  overflow-x: hidden;     /* prevent horizontal scroll */
+  margin-top: 10px;
+  border: 1px solid var(--thin-border);
+  border-radius: 6px;
+  max-height: 440px;      /* shows ~10 rows depending on row height */
 }
 
-/* table */
+/* Compact table */
 table.feedbacks {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
-  table-layout: fixed;
+  font-size: 12px;
+  table-layout: fixed;    /* let widths be honored */
 }
 table.feedbacks thead th {
   position: sticky;
   top: 0;
   background: #fbfdff;
   z-index: 2;
-  padding: 10px;
+  padding: 8px;
   text-align: left;
-  border-bottom: 1px solid #e6eef7;
+  border-bottom: 1px solid var(--thin-border);
   font-weight: 700;
-  font-size: 13px;
+  font-size: 12px;
 }
 table.feedbacks tbody td {
-  padding: 10px;
-  border-bottom: 1px solid #f1f6fb;
+  padding: 8px;
+  border-bottom: 1px solid var(--thin-border); /* visible horizontal lines */
   vertical-align: middle;
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-table.feedbacks tbody tr {
-  cursor: pointer;
-}
-table.feedbacks tbody tr:hover {
-  background: #fbfbff;
-}
 
-/* column widths to make room for all fields */
-th.col-timestamp { width: 160px; }
-th.col-overall { width: 60px; text-align:center; }
-th.col-quality { width: 80px; text-align:center; }
-th.col-timeliness { width: 80px; text-align:center; }
-th.col-friendliness { width: 80px; text-align:center; }
-th.col-speed { width: 80px; text-align:center; }
-th.col-recommend { width: 90px; text-align:center; }
-th.col-name { width: 140px; }
-th.col-phone { width: 110px; }
+/* Column widths (tight) */
+th.col-timestamp { width: 140px; }
+th.col-overall { width: 48px; text-align:center; }
+th.col-quality { width: 58px; text-align:center; }
+th.col-timeliness { width: 58px; text-align:center; }
+th.col-friendliness { width: 58px; text-align:center; }
+th.col-speed { width: 58px; text-align:center; }
+th.col-recommend { width: 68px; text-align:center; }
+th.col-name { width: 120px; }
+th.col-phone { width: 100px; }
 th.col-comments { width: auto; }
 
-/* phone cell */
-td.phone-cell {
-  color: #1a237e;
-  text-decoration: underline;
-  cursor: pointer;
-  white-space: normal;
-}
+/* Ensure comments wrap (so no horizontal overflow) */
+td[col-comments], td:last-child, td.comments-cell { white-space: normal; word-break: break-word; }
 
-/* modal */
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.4);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
-.modal {
-  background: white;
-  padding: 16px;
-  border-radius: 10px;
-  max-width: 840px;
-  width: 92%;
-  max-height: 80vh;
-  overflow: auto;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
-}
+/* phone cell */
+td.phone-cell { color: var(--brand); text-decoration: underline; cursor: pointer; }
+
+/* modal (unchanged but compact) */
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 9999; }
+.modal { background: white; padding: 14px; border-radius: 8px; max-width: 760px; width: 92%; max-height: 80vh; overflow: auto; box-shadow: 0 14px 40px rgba(0,0,0,0.18); }
 
 /* print: only table area */
 @media print {
@@ -213,10 +140,11 @@ td.phone-cell {
   .modal-backdrop { display:none !important; }
 }
 
-/* small responsive adjustments */
-@media (max-width: 900px) {
-  .master-container { padding: 12px; width: 96%; }
-  .service-card { min-width: 160px; }
-  .top-actions { flex-direction: column; align-items: stretch; gap: 8px; }
-  .top-actions .right { justify-content: flex-end; }
+/* Responsive tweaks */
+@media (max-width: 700px) {
+  .master-container { padding: 10px; width: 98%; }
+  th.col-name { width: 100px; }
+  th.col-phone { width: 90px; }
+  .service-card { min-width: 140px; }
+  .table-wrap { max-height: 380px; }
 }
