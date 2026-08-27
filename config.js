@@ -5,11 +5,11 @@ const CONFIG = {
     
     // Rating labels
     RATING_LABELS: {
-        1: 'Poor / Not at all',
-        2: 'Fair / Unlikely',
-        3: 'Good / Neutral',
-        4: 'Very Good / Likely',
-        5: 'Excellent / Extremely likely'
+        1: 'Poor',
+        2: 'Fair',
+        3: 'Good',
+        4: 'Very Good',
+        5: 'Excellent'
     },
     
     // Form fields
@@ -39,5 +39,5 @@ const CONFIG = {
     }
 };
 
-// Make CONFIG globally available
+
 window.CONFIG = CONFIG;
