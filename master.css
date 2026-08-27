@@ -2,19 +2,34 @@
 
 /* Scope master layout to .master-container so it won't affect other pages */
 .master-container {
-  max-width: 900px;
+  max-width: 1000px;
   width: 95%;
   margin: 24px auto;
-  padding: 22px;
+  padding: 18px;
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 8px 30px rgba(2,6,23,0.05);
 }
 
-/* Top actions */
+/* Top actions - left aligned now for date filters + buttons */
 .top-actions {
   display: flex;
-  justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 10px;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 12px;
 }
+
+/* left group (filters) and right group (controls) */
+.top-actions .left,
+.top-actions .right {
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+
+/* Buttons */
 .top-actions .btn {
   padding: 8px 12px;
   border-radius: 8px;
@@ -29,6 +44,14 @@
   color: #1a237e;
   border: 1px solid #cbd5e0;
 }
+.top-actions input[type="date"],
+.top-actions select {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #e6eef7;
+  background: white;
+  font-size: 13px;
+}
 
 /* KPI row and cards */
 .kpi-row {
@@ -36,7 +59,7 @@
   gap: 12px;
   align-items: stretch;
   flex-wrap: wrap;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 .kpi {
   background: #f7fafc;
@@ -98,43 +121,41 @@
   border-radius: 999px;
 }
 
-/* search area */
-.search-row {
-  display:flex;
-  gap:8px;
-  align-items:center;
-  margin-top:10px;
-  margin-bottom:8px;
+/* table tweaks */
+/* wrapper keeps header visible and body scrollable — set height to show ~10 rows */
+.table-wrap {
+  overflow: auto;
+  margin-top: 12px;
+  border: 1px solid #eef2f7;
+  border-radius: 8px;
+  max-height: 480px; /* roughly 10 rows; adjust if needed */
 }
 
-/* table tweaks */
-.table-wrap {
-  overflow-x: auto;
-  margin-top: 12px;
-}
+/* table */
 table.feedbacks {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
+  table-layout: fixed;
 }
-table.feedbacks th,
-table.feedbacks td {
-  padding: 8px;
-  border: 1px solid #eef2f7;
-  text-align: left;
-  vertical-align: top;
-}
-table.feedbacks th {
+table.feedbacks thead th {
+  position: sticky;
+  top: 0;
   background: #fbfdff;
-  color: #2d3748;
+  z-index: 2;
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #e6eef7;
   font-weight: 700;
-  font-size: 12px;          /* reduced font */
-  white-space: normal;      /* allow wrapping */
-  word-break: break-word;
-}
-table.feedbacks td {
   font-size: 13px;
-  line-height: 1.2;
+}
+table.feedbacks tbody td {
+  padding: 10px;
+  border-bottom: 1px solid #f1f6fb;
+  vertical-align: middle;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 table.feedbacks tbody tr {
   cursor: pointer;
@@ -142,10 +163,25 @@ table.feedbacks tbody tr {
 table.feedbacks tbody tr:hover {
   background: #fbfbff;
 }
+
+/* column widths to make room for all fields */
+th.col-timestamp { width: 160px; }
+th.col-overall { width: 60px; text-align:center; }
+th.col-quality { width: 80px; text-align:center; }
+th.col-timeliness { width: 80px; text-align:center; }
+th.col-friendliness { width: 80px; text-align:center; }
+th.col-speed { width: 80px; text-align:center; }
+th.col-recommend { width: 90px; text-align:center; }
+th.col-name { width: 140px; }
+th.col-phone { width: 110px; }
+th.col-comments { width: auto; }
+
+/* phone cell */
 td.phone-cell {
   color: #1a237e;
   text-decoration: underline;
   cursor: pointer;
+  white-space: normal;
 }
 
 /* modal */
@@ -169,8 +205,18 @@ td.phone-cell {
   box-shadow: 0 20px 60px rgba(0,0,0,0.25);
 }
 
+/* print: only table area */
+@media print {
+  body * { visibility: hidden; }
+  .table-wrap, .table-wrap * { visibility: visible; }
+  .table-wrap { position: absolute; left: 0; top: 0; width: 100%; height: auto; border: none; }
+  .modal-backdrop { display:none !important; }
+}
+
 /* small responsive adjustments */
 @media (max-width: 900px) {
-  .master-container { padding: 18px; }
-  .service-card { min-width: 180px; }
+  .master-container { padding: 12px; width: 96%; }
+  .service-card { min-width: 160px; }
+  .top-actions { flex-direction: column; align-items: stretch; gap: 8px; }
+  .top-actions .right { justify-content: flex-end; }
 }
