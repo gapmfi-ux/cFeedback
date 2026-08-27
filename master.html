@@ -7,19 +7,19 @@
   <link rel="stylesheet" href="master.css">
 </head>
 <body>
- <div class="master-container">
-    <div class="header">
-      <div><h1>📋 Feedbacks — Master Monitor</h1></div>
-      <div class="muted">Live view of submitted feedbacks</div>
+ <div class="container master-container">
+    <div class="header" style="text-align:center;margin-bottom:6px;">
+      <h1 style="margin:6px 0 2px;font-size:18px;">Feedbacks — Master Monitor</h1>
+      <div class="muted" style="color:#64748b;font-size:13px;">Live view of submitted feedbacks</div>
     </div>
 
     <div class="top-actions">
       <div class="left">
-        <label for="fromDate">From</label>
+        <label for="fromDate" style="font-size:13px;color:#475569;">From</label>
         <input id="fromDate" type="date" />
-        <label for="toDate">To</label>
+        <label for="toDate" style="font-size:13px;color:#475569;">To</label>
         <input id="toDate" type="date" />
-        <select id="filterRating">
+        <select id="filterRating" style="min-width:150px;">
           <option value="">Filter by overall (any)</option>
           <option value="5">Overall = 5</option>
           <option value="4">Overall = 4</option>
@@ -29,10 +29,12 @@
         </select>
         <button id="btnApplyFilters" class="btn secondary">Apply</button>
       </div>
+
       <div class="right">
-        <button id="btnLive" class="btn">⟳ Refresh (Live)</button>
-        <button id="btnExport" class="btn secondary">⬇ CSV</button>
-        <button id="btnPrint" class="btn secondary">🖨 Print</button>
+        <!-- Refresh left for manual refresh but page auto-loads on open -->
+        <button id="btnLive" class="btn">Refresh (Live)</button>
+        <button id="btnExport" class="btn secondary">Export CSV</button>
+        <button id="btnPrint" class="btn secondary">Print Table</button>
       </div>
     </div>
 
@@ -47,9 +49,9 @@
 
     <div class="service-averages" id="serviceAverages"></div>
 
-    <div id="status" style="margin:6px 0 8px; font-weight: 500; color: #1a2b44;">Loading live data…</div>
+    <div id="status" class="muted" style="margin-top:6px;font-size:13px;">Loading live data…</div>
 
-    <div class="table-wrap" id="tableWrap">
+    <div class="table-wrap" id="tableWrap" style="margin-top:10px;">
       <table class="feedbacks" id="feedbackTable" aria-live="polite">
         <thead id="tableHead">
           <tr>
@@ -70,10 +72,10 @@
     </div>
   </div>
 
-  <!-- Modal -->
+  <!-- Modal for details -->
   <div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true">
     <div class="modal" role="document">
-      <div style="text-align:right; margin-bottom:8px;"><button id="modalClose" class="btn secondary">Close</button></div>
+      <div style="text-align:right;"><button id="modalClose" class="btn secondary">Close</button></div>
       <h3 id="modalTitle">Feedback details</h3>
       <div id="modalContent"></div>
     </div>
@@ -145,9 +147,9 @@
         card.className = 'service-card';
         card.innerHTML = `
           <div class="title">${escapeHtml(s.label)}</div>
-          <div class="stat-row">
-            <span class="stat-val">${s.avg ? s.avg.toFixed(2) : '—'}</span>
-            <span class="stat-count">${s.count} rated</span>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <div style="font-size:14px;font-weight:700;color:#0f172a;">${s.avg ? s.avg.toFixed(2) : '—'}</div>
+            <div class="small" style="color:#64748b;">${s.count} rated</div>
           </div>
           <div class="bar-bg"><div class="bar-fill" style="width:${pct}%;"></div></div>
         `;
@@ -243,7 +245,7 @@
     document.getElementById('modalClose').addEventListener('click', ()=> modalBackdrop.style.display = 'none');
     modalBackdrop.addEventListener('click', (ev)=> { if (ev.target===modalBackdrop) modalBackdrop.style.display='none'; });
 
-    // filters
+    // filters: rating + date range
     function applyFilters() {
       const from = document.getElementById('fromDate').value;
       const to = document.getElementById('toDate').value;
@@ -269,7 +271,7 @@
     }
     document.getElementById('btnApplyFilters').addEventListener('click', applyFilters);
 
-    // CSV
+    // CSV export (ordered headers)
     function downloadCSV(rows) {
       if (!rows || rows.length === 0) { alert('No rows to export'); return; }
       const headers = ['Timestamp','Overall Satisfaction','Quality of Service','Timeliness','Staff Friendliness','Speed of Service','Recommend (1-5)','Name','Phone','Additional Comments'];
@@ -282,8 +284,11 @@
       a.remove();
     }
     document.getElementById('btnExport').addEventListener('click', ()=> downloadCSV(filteredRows));
+
+    // Print only the table content
     document.getElementById('btnPrint').addEventListener('click', ()=> window.print());
 
+    // normalize, sort (latest first)
     function sortRowsByTimestampDesc(rows) {
       return rows.slice().sort((a,b) => {
         const da = a.Timestamp ? new Date(a.Timestamp) : 0;
@@ -292,7 +297,7 @@
       });
     }
 
-    // Load live
+    // Load live data via JSONP, normalize keys, sort newest first, and render
     function loadLive() {
       if (!SCRIPT_URL) { document.getElementById('status').textContent = 'SCRIPT_URL not configured.'; return; }
       document.getElementById('status').textContent = 'Loading live data…';
@@ -301,7 +306,9 @@
       window[callbackName] = function(data) {
         try {
           if (!Array.isArray(data)) { document.getElementById('status').textContent = 'Live load returned unexpected data.'; return; }
+          // Normalize incoming rows to canonical keys expected by the UI
           const normalized = normalizeRows(data);
+          // Sort newest first
           allRows = sortRowsByTimestampDesc(normalized);
           filteredRows = allRows.slice();
           document.getElementById('status').textContent = 'Loaded live data (' + allRows.length + ' rows)';
@@ -320,11 +327,11 @@
     }
     document.getElementById('btnLive').addEventListener('click', loadLive);
 
-    // init
+    // initial auto-load (page loads live data automatically)
     (function init() {
-      renderKPIs([]);
+      renderKPIs([]); // placeholder
       renderTable([]);
-      loadLive();
+      loadLive();     // auto load on page open
     })();
   </script>
 </body>
