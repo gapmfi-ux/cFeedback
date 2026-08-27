@@ -77,243 +77,343 @@
   <script src="logo-data.js"></script>
   <script src="logo.js"></script>
 
-  <!-- master page script (unchanged) -->
   <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzJ1tOsTZ23rLudil3pLqBBlIR2KCyEUfU2VU6dWJQXJ2vnZgio3ck2dz3c26YpxFPdaQ/exec'; // set your Apps Script URL
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzJ1tOsTZ23rLudil3pLqBBlIR2KCyEUfU2VU6dWJQXJ2vnZgio3ck2dz3c26YpxFPdaQ/exec'; // set your Apps Script URL
 
-    const SAMPLE_DATA = [
-      {
-        "Timestamp":"2026-08-26T16:10:12.000Z",
-        "Overall Satisfaction":"5",
-        "Quality of Service":"5",
-        "Timeliness":"4",
-        "Staff Friendliness":"5",
-        "Speed of Service":"5",
-        "Recommend (1-5)":"5",
-        "Additional Comments":"Great service, very polite staff. Quick processing.",
-        "Name":"Ama",
-        "Phone":"+233240000001"
-      },
-      {
-        "Timestamp":"2026-08-25T14:02:03.000Z",
-        "Overall Satisfaction":"3",
-        "Quality of Service":"3",
-        "Timeliness":"3",
-        "Staff Friendliness":"2",
-        "Speed of Service":"3",
-        "Recommend (1-5)":"3",
-        "Additional Comments":"Long wait time. Could improve queue management.",
-        "Name":"Kofi",
-        "Phone":""
-      },
-      {
-        "Timestamp":"2026-08-24T09:45:20.000Z",
-        "Overall Satisfaction":"4",
-        "Quality of Service":"4",
-        "Timeliness":"4",
-        "Staff Friendliness":"4",
-        "Speed of Service":"4",
-        "Recommend (1-5)":"4",
-        "Additional Comments":"Good overall. Friendly tellers.",
-        "Name":"Adwoa",
-        "Phone":"+233240000002"
+  const SAMPLE_DATA = [
+    {
+      "Timestamp":"2026-08-26T16:10:12.000Z",
+      "Overall Satisfaction":"5",
+      "Quality of Service":"5",
+      "Timeliness":"4",
+      "Staff Friendliness":"5",
+      "Speed of Service":"5",
+      "Recommend (1-5)":"5",
+      "Additional Comments":"Great service, very polite staff. Quick processing.",
+      "Name":"Ama",
+      "Phone":"+233240000001"
+    },
+    {
+      "Timestamp":"2026-08-25T14:02:03.000Z",
+      "Overall Satisfaction":"3",
+      "Quality of Service":"3",
+      "Timeliness":"3",
+      "Staff Friendliness":"2",
+      "Speed of Service":"3",
+      "Recommend (1-5)":"3",
+      "Additional Comments":"Long wait time. Could improve queue management.",
+      "Name":"Kofi",
+      "Phone":""
+    },
+    {
+      "Timestamp":"2026-08-24T09:45:20.000Z",
+      "Overall Satisfaction":"4",
+      "Quality of Service":"4",
+      "Timeliness":"4",
+      "Staff Friendliness":"4",
+      "Speed of Service":"4",
+      "Recommend (1-5)":"4",
+      "Additional Comments":"Good overall. Friendly tellers.",
+      "Name":"Adwoa",
+      "Phone":"+233240000002"
+    }
+  ];
+
+  // Header normalization map: possible sheet keys -> UI display keys
+  const KEY_MAP = {
+    // timestamp
+    'timestamp': 'Timestamp',
+    'Timestamp': 'Timestamp',
+
+    // overall
+    'overallsatisfaction': 'Overall Satisfaction',
+    'overall satisfaction': 'Overall Satisfaction',
+    'overall': 'Overall Satisfaction',
+    'OverallSatisfaction': 'Overall Satisfaction',
+    'Overall Satisfaction': 'Overall Satisfaction',
+
+    // quality
+    'qualityofservice': 'Quality of Service',
+    'quality of service': 'Quality of Service',
+    'quality': 'Quality of Service',
+    'QualityOfService': 'Quality of Service',
+    'Quality of Service': 'Quality of Service',
+
+    // timeliness
+    'timeliness': 'Timeliness',
+    'Timeliness': 'Timeliness',
+
+    // staff friendliness
+    'stafffriendliness': 'Staff Friendliness',
+    'staff friendliness': 'Staff Friendliness',
+    'friendliness': 'Staff Friendliness',
+    'StaffFriendliness': 'Staff Friendliness',
+    'Staff Friendliness': 'Staff Friendliness',
+
+    // speed
+    'speedofservice': 'Speed of Service',
+    'speed of service': 'Speed of Service',
+    'SpeedOfService': 'Speed of Service',
+    'Speed of Service': 'Speed of Service',
+
+    // recommend
+    'recommend': 'Recommend (1-5)',
+    'recommend (1-5)': 'Recommend (1-5)',
+    'Recommend (1-5)': 'Recommend (1-5)',
+
+    // comments
+    'additionalcomments': 'Additional Comments',
+    'additional comments': 'Additional Comments',
+    'comments': 'Additional Comments',
+    'AdditionalComments': 'Additional Comments',
+    'Additional Comments': 'Additional Comments',
+
+    // name / phone / email
+    'name': 'Name',
+    'phone': 'Phone',
+    'email': 'Email'
+  };
+
+  // Utility: normalize a single row object to the UI keys
+  function normalizeRow(raw) {
+    const out = {
+      'Timestamp': '',
+      'Overall Satisfaction': '',
+      'Quality of Service': '',
+      'Timeliness': '',
+      'Staff Friendliness': '',
+      'Speed of Service': '',
+      'Recommend (1-5)': '',
+      'Additional Comments': '',
+      'Name': '',
+      'Phone': '',
+      'Email': ''
+    };
+
+    // For each key in the raw row, map to normalized key if possible
+    for (const k in raw) {
+      if (!Object.prototype.hasOwnProperty.call(raw, k)) continue;
+      const v = raw[k];
+      const nk = KEY_MAP[String(k).trim().toLowerCase()] || KEY_MAP[String(k).trim()] || null;
+      if (nk) {
+        out[nk] = (v === null || v === undefined) ? '' : String(v);
+      } else {
+        // fallback: if target key already exists, attempt to match by cleaned name
+        const clean = String(k).trim();
+        if (out.hasOwnProperty(clean)) out[clean] = (v === null || v === undefined) ? '' : String(v);
       }
+    }
+
+    // If Timestamp is empty but there's a "Timestamp" like value under other known names, try common alternatives
+    // (already handled above). Return out.
+    return out;
+  }
+
+  // Normalize an array of rows
+  function normalizeRows(rows) {
+    if (!Array.isArray(rows)) return [];
+    return rows.map(r => normalizeRow(r));
+  }
+
+  // Keep other UI functions (formatting, render, compute) but use normalized rows
+  let allRows = SAMPLE_DATA.slice();
+  let filteredRows = allRows.slice();
+
+  function formatTimestamp(ts){ try{ const d=new Date(ts); return isNaN(d.getTime()) ? ts : d.toLocaleString(); } catch(e){ return ts; } }
+  function escapeHtml(s){ if (!s && s !== 0) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function computeServiceAverages(rows) {
+    const keys = [
+      {key:'Overall Satisfaction', label:'Overall Satisfaction'},
+      {key:'Quality of Service', label:'Quality of Service'},
+      {key:'Timeliness', label:'Timeliness'},
+      {key:'Staff Friendliness', label:'Staff Friendliness'},
+      {key:'Speed of Service', label:'Speed of Service'},
+      {key:'Recommend (1-5)', label:'Recommend (1-5)'}
     ];
+    return keys.map(m => {
+      const vals = rows.map(r => Number(r[m.key] || 0)).filter(v => v > 0);
+      const avg = vals.length ? (vals.reduce((s,v)=>s+v,0)/vals.length) : 0;
+      return { key: m.key, label: m.label, avg: avg, count: vals.length };
+    });
+  }
 
-    let allRows = SAMPLE_DATA.slice();
-    let filteredRows = allRows.slice();
-
-    function formatTimestamp(ts){ try{ const d=new Date(ts); return d.toLocaleString(); } catch(e){ return ts; } }
-    function escapeHtml(s){ if (!s && s !== 0) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-    function computeServiceAverages(rows) {
-      const keys = [
-        {key:'Overall Satisfaction', label:'Overall Satisfaction'},
-        {key:'Quality of Service', label:'Quality of Service'},
-        {key:'Timeliness', label:'Timeliness'},
-        {key:'Staff Friendliness', label:'Staff Friendliness'},
-        {key:'Speed of Service', label:'Speed of Service'},
-        {key:'Recommend (1-5)', label:'Recommend (1-5)'}
-      ];
-      return keys.map(m => {
-        const vals = rows.map(r => Number(r[m.key] || 0)).filter(v => v > 0);
-        const avg = vals.length ? (vals.reduce((s,v)=>s+v,0)/vals.length) : 0;
-        return { key: m.key, label: m.label, avg: avg, count: vals.length };
-      });
-    }
-
-    function renderServiceAverages(rows) {
-      const container = document.getElementById('serviceAverages');
-      container.innerHTML = '';
-      const avgs = computeServiceAverages(rows);
-      avgs.forEach(s => {
-        const pct = Math.round((s.avg / 5) * 100);
-        const card = document.createElement('div');
-        card.className = 'service-card';
-        card.innerHTML = `
-          <div class="title">${escapeHtml(s.label)}</div>
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-            <div style="font-size:16px;font-weight:700;color:#0f172a;">${s.avg ? s.avg.toFixed(2) : '—'}</div>
-            <div class="small" style="color:#64748b;">${s.count} rated</div>
-          </div>
-          <div class="bar-bg"><div class="bar-fill" style="width:${pct}%;"></div></div>
-        `;
-        container.appendChild(card);
-      });
-    }
-
-    function median(values){
-      const nums = values.slice().sort((a,b)=>a-b);
-      if (nums.length === 0) return 0;
-      const mid = Math.floor(nums.length/2);
-      return nums.length % 2 === 0 ? (nums[mid-1]+nums[mid])/2 : nums[mid];
-    }
-
-    function renderKPIs(rows) {
-      const count = rows.length;
-      const overallVals = rows.map(r => Number(r['Overall Satisfaction']||0)).filter(v=>v>0);
-      const avg = overallVals.length ? (overallVals.reduce((s,v)=>s+v,0)/overallVals.length) : 0;
-      const goodCount = overallVals.filter(v => v >= 4).length;
-      const med = median(overallVals);
-      document.getElementById('kpiCount').textContent = count;
-      document.getElementById('kpiAvg').textContent = count ? avg.toFixed(2) : '—';
-      document.getElementById('kpiGoodPct').textContent = count ? `${Math.round(100 * goodCount / (count||1))}%` : '—';
-      document.getElementById('kpiMedian').textContent = overallVals.length ? med : '—';
-      renderServiceAverages(rows);
-    }
-
-    function renderTable(rows) {
-      const tbody = document.getElementById('tableBody');
-      tbody.innerHTML = '';
-      rows.forEach((r, idx) => {
-        const tr = document.createElement('tr');
-        tr.dataset.idx = idx;
-        tr.innerHTML = `
-          <td>${escapeHtml(formatTimestamp(r.Timestamp))}</td>
-          <td>${escapeHtml(r['Overall Satisfaction'] || '')}</td>
-          <td>${escapeHtml(r['Quality of Service'] || '')}</td>
-          <td>${escapeHtml(r['Timeliness'] || '')}</td>
-          <td>${escapeHtml(r['Staff Friendliness'] || '')}</td>
-          <td>${escapeHtml(r['Name'] || '')}</td>
-          <td class="phone-cell">${escapeHtml(r['Phone'] || '')}</td>
-          <td>${escapeHtml(r['Additional Comments'] ? (r['Additional Comments'].slice(0,200)) : '')}${(r['Additional Comments'] && r['Additional Comments'].length>200)?'…':''}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-      Array.from(tbody.querySelectorAll('tr')).forEach(tr => {
-        tr.addEventListener('click', (e) => {
-          const idx = Number(tr.dataset.idx);
-          openModal(filteredRows[idx]);
-        });
-      });
-
-      Array.from(tbody.querySelectorAll('.phone-cell')).forEach(td => {
-        td.addEventListener('click', async (e) => {
-          e.stopPropagation();
-          const phone = td.textContent.trim();
-          if (!phone) { alert('No phone available'); return; }
-          try {
-            await navigator.clipboard.writeText(phone);
-            td.style.background = '#ecfdf5';
-            setTimeout(()=>td.style.background='','700');
-            alert('Phone copied: ' + phone);
-          } catch (err) {
-            const ta = document.createElement('textarea'); ta.value = phone; document.body.appendChild(ta); ta.select();
-            document.execCommand('copy'); ta.remove();
-            alert('Phone copied: ' + phone);
-          }
-        });
-      });
-    }
-
-    const modalBackdrop = document.getElementById('modalBackdrop');
-    function openModal(item) {
-      document.getElementById('modalTitle').textContent = `Feedback from ${item.Name || 'Anonymous'}`;
-      const html = `
-        <p><strong>Timestamp:</strong> ${escapeHtml(formatTimestamp(item.Timestamp))}</p>
-        <p><strong>Overall:</strong> ${escapeHtml(item['Overall Satisfaction']||'')}</p>
-        <p><strong>Quality:</strong> ${escapeHtml(item['Quality of Service']||'')}</p>
-        <p><strong>Timeliness:</strong> ${escapeHtml(item['Timeliness']||'')}</p>
-        <p><strong>Friendliness:</strong> ${escapeHtml(item['Staff Friendliness']||'')}</p>
-        <p><strong>Speed of Service:</strong> ${escapeHtml(item['Speed of Service']||'')}</p>
-        <p><strong>Recommend (1-5):</strong> ${escapeHtml(item['Recommend (1-5)']||'')}</p>
-        <p><strong>Phone:</strong> ${escapeHtml(item.Phone || '')}</p>
-        <p><strong>Comments:</strong><br>${escapeHtml(item['Additional Comments'] || '')}</p>
+  function renderServiceAverages(rows) {
+    const container = document.getElementById('serviceAverages');
+    container.innerHTML = '';
+    const avgs = computeServiceAverages(rows);
+    avgs.forEach(s => {
+      const pct = Math.round((s.avg / 5) * 100);
+      const card = document.createElement('div');
+      card.className = 'service-card';
+      card.innerHTML = `
+        <div class="title">${escapeHtml(s.label)}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div style="font-size:16px;font-weight:700;color:#0f172a;">${s.avg ? s.avg.toFixed(2) : '—'}</div>
+          <div class="small" style="color:#64748b;">${s.count} rated</div>
+        </div>
+        <div class="bar-bg"><div class="bar-fill" style="width:${pct}%;"></div></div>
       `;
-      document.getElementById('modalContent').innerHTML = html;
-      modalBackdrop.style.display = 'flex';
-    }
-    document.getElementById('modalClose').addEventListener('click', ()=> modalBackdrop.style.display = 'none');
-    modalBackdrop.addEventListener('click', (ev)=> { if (ev.target===modalBackdrop) modalBackdrop.style.display='none'; });
+      container.appendChild(card);
+    });
+  }
 
-    function applyFilters() {
-      const q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
-      const ratingFilter = document.getElementById('filterRating').value;
-      filteredRows = allRows.filter(r => {
-        if (ratingFilter) {
-          if (String(r['Overall Satisfaction']) !== ratingFilter) return false;
-        }
-        if (!q) return true;
-        const hay = (r['Name']+' '+r['Phone']+' '+(r['Additional Comments']||'')+' '+(r['Overall Satisfaction']||'')).toLowerCase();
-        return hay.indexOf(q) !== -1;
-      });
-      renderKPIs(filteredRows);
-      renderTable(filteredRows);
-    }
-    document.getElementById('btnApplyFilters').addEventListener('click', applyFilters);
+  function median(values){
+    const nums = values.slice().sort((a,b)=>a-b);
+    if (nums.length === 0) return 0;
+    const mid = Math.floor(nums.length/2);
+    return nums.length % 2 === 0 ? (nums[mid-1]+nums[mid])/2 : nums[mid];
+  }
 
-    function downloadCSV(rows) {
-      if (!rows || rows.length === 0) { alert('No rows to export'); return; }
-      const headers = Object.keys(rows[0]);
-      const csv = [headers.join(',')].concat(rows.map(r => headers.map(h => `"${String(r[h]||'').replace(/"/g,'""')}"`).join(','))).join('\n');
-      const a = document.createElement('a');
-      a.href = 'data:text/csv;charset=utf-8,%EF%BB%BF' + encodeURIComponent(csv);
-      a.download = 'feedbacks.csv';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    }
-    document.getElementById('btnExport').addEventListener('click', ()=> downloadCSV(filteredRows));
+  function renderKPIs(rows) {
+    const count = rows.length;
+    const overallVals = rows.map(r => Number(r['Overall Satisfaction']||0)).filter(v=>v>0);
+    const avg = overallVals.length ? (overallVals.reduce((s,v)=>s+v,0)/overallVals.length) : 0;
+    const goodCount = overallVals.filter(v => v >= 4).length;
+    const med = median(overallVals);
+    document.getElementById('kpiCount').textContent = count;
+    document.getElementById('kpiAvg').textContent = count ? avg.toFixed(2) : '—';
+    document.getElementById('kpiGoodPct').textContent = count && overallVals.length ? `${Math.round(100 * goodCount / (overallVals.length||1))}%` : '—';
+    document.getElementById('kpiMedian').textContent = overallVals.length ? med : '—';
+    renderServiceAverages(rows);
+  }
 
-    document.getElementById('btnUseSample').addEventListener('click', ()=> {
-      allRows = SAMPLE_DATA.slice();
-      filteredRows = allRows.slice();
-      document.getElementById('status').textContent = 'Showing sample data';
-      renderKPIs(filteredRows);
-      renderTable(filteredRows);
+  function renderTable(rows) {
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
+    rows.forEach((r, idx) => {
+      const tr = document.createElement('tr');
+      tr.dataset.idx = idx;
+      tr.innerHTML = `
+        <td>${escapeHtml(formatTimestamp(r.Timestamp))}</td>
+        <td>${escapeHtml(r['Overall Satisfaction'] || '')}</td>
+        <td>${escapeHtml(r['Quality of Service'] || '')}</td>
+        <td>${escapeHtml(r['Timeliness'] || '')}</td>
+        <td>${escapeHtml(r['Staff Friendliness'] || '')}</td>
+        <td>${escapeHtml(r['Name'] || '')}</td>
+        <td class="phone-cell">${escapeHtml(r['Phone'] || '')}</td>
+        <td>${escapeHtml(r['Additional Comments'] ? (r['Additional Comments'].slice(0,200)) : '')}${(r['Additional Comments'] && r['Additional Comments'].length>200)?'…':''}</td>
+      `;
+      tbody.appendChild(tr);
     });
 
-    function loadLive() {
-      if (!SCRIPT_URL) { alert('SCRIPT_URL not set in master.html.'); return; }
-      document.getElementById('status').textContent = 'Loading live data…';
-      const callbackName = 'handleLiveData';
-      const existing = document.getElementById('_jsonp_master'); if (existing) existing.remove();
-      window[callbackName] = function(data) {
-        try {
-          if (!Array.isArray(data)) { document.getElementById('status').textContent = 'Live load returned unexpected data.'; return; }
-          allRows = data;
-          filteredRows = allRows.slice();
-          document.getElementById('status').textContent = 'Loaded live data (' + allRows.length + ' rows)';
-          renderKPIs(filteredRows);
-          renderTable(filteredRows);
-        } finally {
-          const script = document.getElementById('_jsonp_master'); if (script) script.remove();
-          try { delete window[callbackName]; } catch(e){}
-        }
-      };
-      const script = document.createElement('script');
-      script.id = '_jsonp_master';
-      script.src = `${SCRIPT_URL}?action=list&callback=${callbackName}&_=${Date.now()}`;
-      script.onerror = function(){ document.getElementById('status').textContent = 'Failed to load live data.'; };
-      document.head.appendChild(script);
-    }
-    document.getElementById('btnLive').addEventListener('click', loadLive);
+    Array.from(tbody.querySelectorAll('tr')).forEach(tr => {
+      tr.addEventListener('click', (e) => {
+        const idx = Number(tr.dataset.idx);
+        openModal(filteredRows[idx]);
+      });
+    });
 
-    // initial
+    Array.from(tbody.querySelectorAll('.phone-cell')).forEach(td => {
+      td.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const phone = td.textContent.trim();
+        if (!phone) { alert('No phone available'); return; }
+        try {
+          await navigator.clipboard.writeText(phone);
+          td.style.background = '#ecfdf5';
+          setTimeout(()=>td.style.background='','700');
+          alert('Phone copied: ' + phone);
+        } catch (err) {
+          const ta = document.createElement('textarea'); ta.value = phone; document.body.appendChild(ta); ta.select();
+          document.execCommand('copy'); ta.remove();
+          alert('Phone copied: ' + phone);
+        }
+      });
+    });
+  }
+
+  const modalBackdrop = document.getElementById('modalBackdrop');
+  function openModal(item) {
+    if (!item) return;
+    document.getElementById('modalTitle').textContent = `Feedback from ${item.Name || 'Anonymous'}`;
+    const html = `
+      <p><strong>Timestamp:</strong> ${escapeHtml(formatTimestamp(item.Timestamp))}</p>
+      <p><strong>Overall:</strong> ${escapeHtml(item['Overall Satisfaction']||'')}</p>
+      <p><strong>Quality:</strong> ${escapeHtml(item['Quality of Service']||'')}</p>
+      <p><strong>Timeliness:</strong> ${escapeHtml(item['Timeliness']||'')}</p>
+      <p><strong>Friendliness:</strong> ${escapeHtml(item['Staff Friendliness']||'')}</p>
+      <p><strong>Speed of Service:</strong> ${escapeHtml(item['Speed of Service']||'')}</p>
+      <p><strong>Recommend (1-5):</strong> ${escapeHtml(item['Recommend (1-5)']||'')}</p>
+      <p><strong>Phone:</strong> ${escapeHtml(item.Phone || '')}</p>
+      <p><strong>Comments:</strong><br>${escapeHtml(item['Additional Comments'] || '')}</p>
+    `;
+    document.getElementById('modalContent').innerHTML = html;
+    modalBackdrop.style.display = 'flex';
+  }
+  document.getElementById('modalClose').addEventListener('click', ()=> modalBackdrop.style.display = 'none');
+  modalBackdrop.addEventListener('click', (ev)=> { if (ev.target===modalBackdrop) modalBackdrop.style.display='none'; });
+
+  function applyFilters() {
+    const q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+    const ratingFilter = document.getElementById('filterRating').value;
+    filteredRows = allRows.filter(r => {
+      if (ratingFilter) {
+        if (String(r['Overall Satisfaction']) !== ratingFilter) return false;
+      }
+      if (!q) return true;
+      const hay = (r['Name']+' '+r['Phone']+' '+(r['Additional Comments']||'')+' '+(r['Overall Satisfaction']||'')).toLowerCase();
+      return hay.indexOf(q) !== -1;
+    });
     renderKPIs(filteredRows);
     renderTable(filteredRows);
-    if (SCRIPT_URL) { document.getElementById('status').textContent = 'Auto-loading live data…'; loadLive(); }
-  </script>
+  }
+  document.getElementById('btnApplyFilters').addEventListener('click', applyFilters);
+
+  function downloadCSV(rows) {
+    if (!rows || rows.length === 0) { alert('No rows to export'); return; }
+    const headers = Object.keys(rows[0]);
+    const csv = [headers.join(',')].concat(rows.map(r => headers.map(h => `"${String(r[h]||'').replace(/"/g,'""')}"`).join(','))).join('\n');
+    const a = document.createElement('a');
+    a.href = 'data:text/csv;charset=utf-8,%EF%BB%BF' + encodeURIComponent(csv);
+    a.download = 'feedbacks.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+  document.getElementById('btnExport').addEventListener('click', ()=> downloadCSV(filteredRows));
+
+  document.getElementById('btnUseSample').addEventListener('click', ()=> {
+    allRows = SAMPLE_DATA.slice();
+    filteredRows = allRows.slice();
+    document.getElementById('status').textContent = 'Showing sample data';
+    renderKPIs(filteredRows);
+    renderTable(filteredRows);
+  });
+
+  // Load live data via JSONP and normalize keys
+  function loadLive() {
+    if (!SCRIPT_URL) { alert('SCRIPT_URL not set in master.html.'); return; }
+    document.getElementById('status').textContent = 'Loading live data…';
+    const callbackName = '__master_handleLive_' + Date.now();
+    const existing = document.getElementById('_jsonp_master'); if (existing) existing.remove();
+    window[callbackName] = function(data) {
+      try {
+        if (!Array.isArray(data)) { document.getElementById('status').textContent = 'Live load returned unexpected data.'; return; }
+        // Normalize incoming rows to canonical keys expected by the UI
+        allRows = normalizeRows(data);
+        filteredRows = allRows.slice();
+        document.getElementById('status').textContent = 'Loaded live data (' + allRows.length + ' rows)';
+        renderKPIs(filteredRows);
+        renderTable(filteredRows);
+      } finally {
+        const script = document.getElementById('_jsonp_master'); if (script) script.remove();
+        try { delete window[callbackName]; } catch(e){}
+      }
+    };
+    const script = document.createElement('script');
+    script.id = '_jsonp_master';
+    script.src = `${SCRIPT_URL}?action=list&callback=${callbackName}&_=${Date.now()}`;
+    script.onerror = function(){ document.getElementById('status').textContent = 'Failed to load live data.'; };
+    document.head.appendChild(script);
+  }
+  document.getElementById('btnLive').addEventListener('click', loadLive);
+
+  // initial
+  renderKPIs(filteredRows);
+  renderTable(filteredRows);
+  // Auto-load live data only if SCRIPT_URL is set; comment out this line if you prefer manual refresh
+  if (SCRIPT_URL) { document.getElementById('status').textContent = 'Auto-loading live data…'; loadLive(); }
+</script>
 </body>
 </html>
