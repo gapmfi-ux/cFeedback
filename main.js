@@ -6,30 +6,35 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+/**
+ * Handle form submission
+ */
 async function handleFormSubmit(e) {
     e.preventDefault();
 
     const submitBtn = document.getElementById('submitBtn');
 
-    // Validate all ratings are selected
+    // Validate all ratings are selected (including recommend)
     const ratings = getRatings();
     if (!validateRatings(ratings)) {
         showMessage('error', CONFIG.MESSAGES.error.incomplete);
         return;
     }
 
-    // Collect form data
+    // Collect form data (including new recommend field)
     const formData = {
         overallSatisfaction: parseInt(ratings.overallSatisfaction.value),
         qualityOfService: parseInt(ratings.qualityOfService.value),
         timeliness: parseInt(ratings.timeliness.value),
         staffFriendliness: parseInt(ratings.staffFriendliness.value),
+        speedOfService: parseInt(ratings.speedOfService.value),
+        recommend: parseInt(ratings.recommend.value),
         additionalComments: (document.getElementById('additionalComments') || {}).value || '',
         name: (document.getElementById('name') || {}).value || '',
         phone: (document.getElementById('phone') || {}).value.trim() || ''
     };
 
-    // Optional: basic phone normalization (strip spaces)
+    // Normalize phone spacing
     formData.phone = formData.phone.replace(/\s+/g, ' ');
 
     // Disable submit button
@@ -59,7 +64,9 @@ function getRatings() {
         overallSatisfaction: document.querySelector('input[name="overallSatisfaction"]:checked'),
         qualityOfService: document.querySelector('input[name="qualityOfService"]:checked'),
         timeliness: document.querySelector('input[name="timeliness"]:checked'),
-        staffFriendliness: document.querySelector('input[name="staffFriendliness"]:checked')
+        staffFriendliness: document.querySelector('input[name="staffFriendliness"]:checked'),
+        speedOfService: document.querySelector('input[name="speedOfService"]:checked'),
+        recommend: document.querySelector('input[name="recommend"]:checked')
     };
 }
 
@@ -74,7 +81,6 @@ async function submitFeedback(formData) {
         body: JSON.stringify(formData)
     });
 
-    // handle non-JSON gracefully
     try {
         return await response.json();
     } catch (err) {
@@ -86,18 +92,10 @@ function showMessage(type, message) {
     const messageContainer = document.getElementById('messageContainer');
     const className = type === 'success' ? 'success-message' : 'error-message';
     const icon = type === 'success' ? '✅' : '❌';
-
     messageContainer.innerHTML = `<div class="${className}">${icon} ${message}</div>`;
-
     if (type === 'success') {
         setTimeout(() => { messageContainer.innerHTML = ''; }, 5000);
     }
 }
 
-window.FeedbackForm = {
-    handleFormSubmit,
-    getRatings,
-    validateRatings,
-    submitFeedback,
-    showMessage
-};
+window.FeedbackForm = { handleFormSubmit, getRatings, validateRatings, submitFeedback, showMessage };
