@@ -1,6 +1,7 @@
 /* master.css — styles only used by master.html (KPIs, table tweaks, top-actions, modal) */
 
-.container {
+/* Scope master layout to .master-container so it won't affect other pages */
+.master-container {
   max-width: 1100px;
   width: 95%;
   margin: 24px auto;
@@ -170,6 +171,6 @@ td.phone-cell {
 
 /* small responsive adjustments */
 @media (max-width: 900px) {
-  .container { padding: 18px; }
+  .master-container { padding: 18px; }
   .service-card { min-width: 180px; }
 }
