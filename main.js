@@ -1,5 +1,15 @@
 // main.js — submit using form-encoded POST, replace page with a locked minimal Thank You view
 document.addEventListener('DOMContentLoaded', function() {
+  // If this tab already has a successful submission, show the thank-you view and don't show the form.
+  try {
+    if (sessionStorage.getItem('feedback_submitted') === '1') {
+      showThankYouPageLocked();
+      return;
+    }
+  } catch (e) {
+    // ignore sessionStorage problems
+  }
+
   const form = document.getElementById('feedbackForm');
   if (form) form.addEventListener('submit', handleFormSubmit);
 });
@@ -31,8 +41,7 @@ async function handleFormSubmit(e) {
     recommend: (document.querySelector('input[name="recommend"]:checked') || {}).value || '',
     additionalComments: (document.getElementById('additionalComments') || {}).value || '',
     name: (document.getElementById('name') || {}).value || '',
-    phone: (document.getElementById('phone') || {}).value || '',
-    _submissionId: 'sid_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8)
+    phone: (document.getElementById('phone') || {}).value || ''
   };
 
   // Disable submit button and show loading
@@ -46,6 +55,11 @@ async function handleFormSubmit(e) {
     const result = await submitFeedback(formData);
 
     if (result && result.success) {
+      // mark this tab as submitted so reload stays on the thank you page
+      try {
+        sessionStorage.setItem('feedback_submitted', '1');
+      } catch (e) { /* ignore sessionStorage errors */ }
+
       // Replace the page with a minimal locked thank-you view (no extra text)
       showThankYouPageLocked();
       if (form) form.reset();
