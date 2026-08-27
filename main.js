@@ -1,41 +1,12 @@
-// main.js — hidden-iframe form submit with modal response
+// main.js — iframe-postMessage submit with loading + in-page thank-you replacement
 document.addEventListener('DOMContentLoaded', function() {
   const form = document.getElementById('feedbackForm');
   if (form) form.addEventListener('submit', handleFormSubmit);
 
-  // Global listener for iframe postMessage responses
+  // Global listener left for safety; main listener is attached per-submission and validated by source
   window.addEventListener('message', function(ev) {
-    // Only accept messages from your Apps Script origin
-    let allowedOrigin = '';
-    try {
-      allowedOrigin = new URL(CONFIG.SCRIPT_URL).origin;
-    } catch (err) {
-      // fallback to script.google.com if CONFIG invalid
-      allowedOrigin = 'https://script.google.com';
-    }
-    if (ev.origin !== allowedOrigin) {
-      // ignore unrelated messages
-      return;
-    }
-
-    const data = ev.data || {};
-    if (data && typeof data === 'object') {
-      // show modal with message
-      if (data.success) {
-        showModal('Success', data.message || 'Feedback submitted successfully.');
-        // reset form
-        const f = document.getElementById('feedbackForm');
-        if (f) f.reset();
-      } else {
-        showModal('Error', data.error || 'Submission failed.');
-      }
-
-      // cleanup temporary elements if present
-      removeTempSubmissionElements();
-      // re-enable submit button if it exists
-      const submitBtn = document.getElementById('submitBtn');
-      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Feedback'; }
-    }
+    // ignore unrelated messages here (we handle per-submission)
+    // This global listener does nothing so extension noise is ignored.
   });
 });
 
@@ -46,7 +17,7 @@ async function handleFormSubmit(e) {
   // Validate ratings
   const ratings = getRatings();
   if (!validateRatings(ratings)) {
-    showModal('Error', CONFIG.MESSAGES.error.incomplete);
+    showTemporaryError('Please rate all categories before submitting.');
     return;
   }
 
@@ -63,23 +34,20 @@ async function handleFormSubmit(e) {
     phone: (document.getElementById('phone') || {}).value.trim() || ''
   };
 
-  // Build hidden iframe (name MUST match form target)
-  const iframeId = 'submission_iframe';
-  // remove previous if present
-  const prevI = document.getElementById(iframeId);
-  if (prevI) prevI.remove();
+  // Ensure no leftover temp elements
+  removeTempSubmissionElements();
 
+  // Create hidden iframe (must have name so form.target works)
+  const iframeId = 'submission_iframe';
   const iframe = document.createElement('iframe');
   iframe.style.display = 'none';
   iframe.id = iframeId;
-  iframe.name = iframeId; // critical: target uses window name
+  iframe.name = iframeId;
   document.body.appendChild(iframe);
 
-  // Build hidden form targeting the iframe
+  // Build hidden form targeting iframe
   const formId = 'submission_form';
-  let tempForm = document.getElementById(formId);
-  if (tempForm) tempForm.remove();
-  tempForm = document.createElement('form');
+  const tempForm = document.createElement('form');
   tempForm.style.display = 'none';
   tempForm.method = 'POST';
   tempForm.action = CONFIG.SCRIPT_URL;
@@ -96,34 +64,75 @@ async function handleFormSubmit(e) {
   Object.keys(formData).forEach(k => addInput(k, formData[k]));
   document.body.appendChild(tempForm);
 
-  // Disable UI while submitting
-  if (submitBtn) {
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Submitting...';
-  }
+  // Show loading overlay
+  showLoadingOverlay('Submitting your feedback…');
 
-  // Submit and wait for postMessage (Apps Script will postMessage back)
+  // Disable submit UI
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting...'; }
+
+  // Prepare one-time message listener that accepts ONLY messages from the iframe window
+  let handled = false;
+  const messageListener = function(ev) {
+    try {
+      // Only accept messages from the iframe window we created
+      if (ev.source !== iframe.contentWindow) {
+        // ignore messages from other windows / extensions
+        return;
+      }
+    } catch (ignored) {
+      // If iframe.contentWindow not accessible, ignore
+      return;
+    }
+
+    handled = true;
+    // Clean up timeout
+    if (timeoutId) clearTimeout(timeoutId);
+
+    // Hide loading overlay
+    hideLoadingOverlay();
+
+    // Re-enable submit UI
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Feedback'; }
+
+    const data = ev.data || {};
+    if (data && typeof data === 'object' && data.success) {
+      // Replace form with thank-you panel
+      showThankYouReplace(data.message || 'Thank you — your feedback has been received.');
+      // remove temp elements
+      removeTempSubmissionElements();
+    } else {
+      // show error modal / message
+      const err = (data && data.error) ? data.error : 'Submission failed. Please try again.';
+      showTemporaryError(err);
+      removeTempSubmissionElements();
+    }
+  };
+
+  window.addEventListener('message', messageListener);
+
+  // Submit the form
   try {
     tempForm.submit();
-
-    // fallback timeout in case no message arrives
-    const TIMEOUT_MS = 12000;
-    setTimeout(() => {
-      // if still present, cleanup and show timeout
-      // note: message handler also calls removeTempSubmissionElements()
-      if (document.getElementById(formId) || document.getElementById(iframeId)) {
-        removeTempSubmissionElements();
-        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Feedback'; }
-        showModal('Error', 'Submission timed out. Please try again.');
-      }
-    }, TIMEOUT_MS);
-
   } catch (err) {
-    console.error('Submission error', err);
-    removeTempSubmissionElements();
+    console.error('submit error', err);
+    hideLoadingOverlay();
     if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Feedback'; }
-    showModal('Error', CONFIG.MESSAGES.error.submission);
+    showTemporaryError('Submission failed (client). Please try again.');
+    removeTempSubmissionElements();
+    window.removeEventListener('message', messageListener);
+    return;
   }
+
+  // Timeout: if no response within TIMEOUT_MS, show error and cleanup
+  const TIMEOUT_MS = 12000;
+  const timeoutId = setTimeout(() => {
+    if (handled) return;
+    hideLoadingOverlay();
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Feedback'; }
+    showTemporaryError('Submission timed out. Please try again.');
+    removeTempSubmissionElements();
+    try { window.removeEventListener('message', messageListener); } catch(e){}
+  }, TIMEOUT_MS);
 }
 
 function removeTempSubmissionElements() {
@@ -133,7 +142,7 @@ function removeTempSubmissionElements() {
   if (tempForm) tempForm.remove();
 }
 
-/* Ratings helper functions (unchanged) */
+/* Helpers: ratings */
 function getRatings() {
   return {
     overallSatisfaction: document.querySelector('input[name="overallSatisfaction"]:checked'),
@@ -148,29 +157,85 @@ function validateRatings(ratings) {
   return Object.values(ratings).every(r => r !== null);
 }
 
-/* Modal display helpers */
-function showModal(title, message) {
-  let backdrop = document.getElementById('submissionModal');
-  if (!backdrop) {
-    // fallback: use messageContainer if modal missing
-    const mc = document.getElementById('messageContainer');
-    if (mc) mc.innerHTML = `<div class="success-message">${message}</div>`;
-    return;
+/* Loading overlay */
+function showLoadingOverlay(text) {
+  let ov = document.getElementById('submissionOverlay');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'submissionOverlay';
+    ov.className = 'overlay-backdrop';
+    ov.innerHTML = `
+      <div class="overlay-card">
+        <div class="spinner" aria-hidden="true"></div>
+        <div style="margin-top:12px;font-weight:700;color:#1f2937;">${escapeHtml(text || 'Submitting…')}</div>
+      </div>
+    `;
+    document.body.appendChild(ov);
+  } else {
+    ov.querySelector('.overlay-card div:nth-child(2)').textContent = text || 'Submitting…';
+    ov.style.display = 'flex';
   }
-  const titleEl = document.getElementById('submissionModalTitle');
-  const msgEl = document.getElementById('submissionModalMessage');
-  if (titleEl) titleEl.textContent = title || '';
-  if (msgEl) msgEl.innerHTML = `<div style="white-space:pre-wrap;">${escapeHtml(message)}</div>`;
-  backdrop.style.display = 'flex';
+}
+function hideLoadingOverlay() {
+  const ov = document.getElementById('submissionOverlay');
+  if (ov) ov.style.display = 'none';
 }
 
-/* Modal close hookup (close button exists in HTML) */
-document.addEventListener('click', function (ev) {
-  if (ev.target && ev.target.id === 'submissionModalClose') {
-    const backdrop = document.getElementById('submissionModal');
-    if (backdrop) backdrop.style.display = 'none';
+/* Replace form with a thank-you panel in-place */
+function showThankYouReplace(message) {
+  const container = document.querySelector('.container');
+  if (!container) {
+    // fallback to modal
+    showTemporaryError(message);
+    return;
   }
-});
+  container.innerHTML = `
+    <div style="text-align:center;padding:28px;">
+      <img id="logoImage" alt="GHP Microfinance logo" class="logo" style="width:120px;margin:0 auto 12px;" />
+      <h2 style="margin-top:6px;color:#1f2937;">Thank you for your feedback!</h2>
+      <p style="color:#374151;margin-top:8px;">${escapeHtml(message)}</p>
+      <div style="margin-top:18px;">
+        <button id="thankYouCloseBtn" class="submit-btn" style="width:auto;padding:10px 18px;">Close</button>
+      </div>
+      <div style="margin-top:12px;color:#94a3b8;font-size:13px;">You can close this window or return to the home page.</div>
+    </div>
+  `;
+
+  // Attempt to reload logo (logo.js will set it)
+  try { if (window.LogoManager && typeof window.LogoManager.loadLogo === 'function') window.LogoManager.loadLogo(); } catch(e){}
+
+  // Close button behavior: try to close window, otherwise redirect to index.html
+  const closeBtn = document.getElementById('thankYouCloseBtn');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', function() {
+      try { window.close(); } catch (e) {}
+      // If window.close didn't work, redirect to index.html
+      setTimeout(function() {
+        if (!window.closed) window.location.href = 'index.html';
+      }, 200);
+    });
+  }
+}
+
+/* Temporary error display (in place of previous modal) */
+function showTemporaryError(message) {
+  const container = document.querySelector('.container');
+  if (!container) return alert(message);
+  // insert a small inline error banner above the form
+  let err = document.getElementById('inlineErrorBanner');
+  if (!err) {
+    err = document.createElement('div');
+    err.id = 'inlineErrorBanner';
+    err.style.margin = '10px 0';
+    err.style.padding = '10px';
+    err.style.borderRadius = '8px';
+    err.style.background = '#fee2e2';
+    err.style.color = '#b91c1c';
+    container.insertBefore(err, container.firstChild);
+  }
+  err.textContent = message;
+  setTimeout(()=> { if (err) err.remove(); }, 7000);
+}
 
 /* Utility */
 function escapeHtml(s) {
