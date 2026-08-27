@@ -1,4 +1,4 @@
-// main.js — submit using the simple form-encoded API, show loading, then replace page with a thank-you view
+// main.js — submit using form-encoded POST, replace page with a locked Thank You view (no close/redirect)
 document.addEventListener('DOMContentLoaded', function() {
   const form = document.getElementById('feedbackForm');
   if (form) form.addEventListener('submit', handleFormSubmit);
@@ -21,7 +21,7 @@ async function handleFormSubmit(e) {
     return;
   }
 
-  // Collect form data (match the names used in your form.html)
+  // Collect form data
   const formData = {
     overallSatisfaction: (ratings.overallSatisfaction && ratings.overallSatisfaction.value) || '',
     qualityOfService: (ratings.qualityOfService && ratings.qualityOfService.value) || '',
@@ -32,7 +32,6 @@ async function handleFormSubmit(e) {
     additionalComments: (document.getElementById('additionalComments') || {}).value || '',
     name: (document.getElementById('name') || {}).value || '',
     phone: (document.getElementById('phone') || {}).value || '',
-    // optional client id to help server-side de-dupe
     _submissionId: 'sid_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8)
   };
 
@@ -47,8 +46,9 @@ async function handleFormSubmit(e) {
     const result = await submitFeedback(formData);
 
     if (result && result.success) {
-      // Replace the page with a thank-you view
-      showThankYouPage(result.message || CONFIG.MESSAGES.success);
+      // Replace the page with a minimal locked thank-you view (no close/redirect)
+      showThankYouPageLocked(result.message || CONFIG.MESSAGES.success);
+      if (form) form.reset();
     } else {
       throw new Error(result && result.error ? result.error : 'Submission failed');
     }
@@ -149,56 +149,58 @@ function hideLoadingOverlay() {
   if (ov) ov.style.display = 'none';
 }
 
-/* --- Replace page with Thank You content --- */
-function showThankYouPage(message) {
+/* --- Replace page with a locked Thank You content (no close/redirect) --- */
+function showThankYouPageLocked(message) {
   const container = document.querySelector('.container');
   if (!container) {
-    // fallback to modal alert
+    // fallback: show alert only
     alert(message || CONFIG.MESSAGES.success);
-    closePageAfterDelay();
+    // do not redirect or auto-close
     return;
   }
 
   container.innerHTML = `
-    <div style="text-align:center;padding:28px;">
+    <div style="text-align:center;padding:40px 18px;">
       <img id="logoImage" alt="GHP Microfinance logo" class="logo" style="width:120px;margin:0 auto 12px;" />
       <h2 style="margin-top:6px;color:#1f2937;">Thank you for your feedback!</h2>
       <p id="thankYouMessage" style="color:#374151;margin-top:8px;">${escapeHtml(message || CONFIG.MESSAGES.success)}</p>
-      <div style="margin-top:18px;">
-        <button id="thankYouCloseBtn" class="submit-btn" style="width:auto;padding:10px 18px;">Close</button>
-      </div>
-      <div style="margin-top:12px;color:#94a3b8;font-size:13px;">You can close this window or return to the home page.</div>
+      <p style="color:#9ca3af;margin-top:18px;font-size:13px;font-weight:600;">Back navigation is disabled — you cannot return to the form.</p>
     </div>
   `;
 
   // Try to (re)load logo into new markup
   try { if (window.LogoManager && typeof window.LogoManager.loadLogo === 'function') window.LogoManager.loadLogo(); } catch(e){}
 
-  const closeBtn = document.getElementById('thankYouCloseBtn');
-  if (closeBtn) {
-    closeBtn.addEventListener('click', function() {
-      closePageAndFallback();
-    });
+  // Lock browser back navigation so user cannot go back to the form
+  lockBackNavigation();
+}
+
+/* --- Lock back navigation after submission --- */
+function lockBackNavigation() {
+  try {
+    // Replace current history entry with a locked marker, then push a thankyou entry.
+    history.replaceState({submittedLocked: true}, document.title, location.href);
+    history.pushState({thankyou: true}, document.title, location.href);
+
+    // When a popstate occurs (user presses Back), re-push the thankyou state to keep them here.
+    window.addEventListener('popstate', function (e) {
+      try {
+        // If the user tries to go back to the locked state, move them forward again
+        if (e.state && e.state.submittedLocked) {
+          history.pushState({thankyou: true}, document.title, location.href);
+        } else {
+          // For any popstate (defensive): always restore thankyou state
+          history.pushState({thankyou: true}, document.title, location.href);
+        }
+      } catch (err) {
+        // ignore any errors
+        console.error('popstate handler error', err);
+      }
+    }, { once: false });
+  } catch (err) {
+    // history manipulation may fail in some contexts; we silently ignore
+    console.warn('Could not lock back navigation', err);
   }
-
-  // Auto-close after a short delay if you want (optional). Comment out if not desired:
-  // setTimeout(() => { closePageAndFallback(); }, 8000);
-}
-
-/* --- Close helpers --- */
-function closePageAndFallback() {
-  try { window.close(); } catch (e) { /* ignore */ }
-  // If not closed, redirect after short delay
-  setTimeout(() => {
-    try {
-      if (!window.closed) window.location.href = 'index.html';
-    } catch (e) {
-      window.location.href = 'index.html';
-    }
-  }, 200);
-}
-function closePageAfterDelay() {
-  setTimeout(() => closePageAndFallback(), 2000);
 }
 
 /* --- Inline message (errors) --- */
@@ -223,7 +225,7 @@ function showMessage(type, message) {
   }
 }
 
-/* --- small util --- */
+/* --- util --- */
 function escapeHtml(s) {
   if (!s && s !== 0) return '';
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -236,5 +238,5 @@ window.FeedbackForm = {
   validateRatings,
   submitFeedback,
   showMessage,
-  showThankYouPage
+  showThankYouPageLocked
 };
