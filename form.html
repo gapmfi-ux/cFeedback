@@ -65,6 +65,7 @@
       <div class="form-group">
         <label>Quality of Service</label>
         <div class="rating-group" data-rating="qualityOfService">
+          <!-- same 1-5 options -->
           <label class="rating-option">
             <input type="radio" name="qualityOfService" value="1">
             <span class="rating-circle">1</span>
@@ -157,10 +158,51 @@
         </div>
       </div>
 
+      <!-- NEW: Speed of Service -->
+      <div class="form-group">
+        <label>Speed of Service</label>
+        <div class="rating-group" data-rating="speedOfService">
+          <label class="rating-option">
+            <input type="radio" name="speedOfService" value="1">
+            <span class="rating-circle">1</span>
+            <span class="rating-label">Poor</span>
+          </label>
+          <label class="rating-option">
+            <input type="radio" name="speedOfService" value="2">
+            <span class="rating-circle">2</span>
+            <span class="rating-label">Fair</span>
+          </label>
+          <label class="rating-option">
+            <input type="radio" name="speedOfService" value="3">
+            <span class="rating-circle">3</span>
+            <span class="rating-label">Good</span>
+          </label>
+          <label class="rating-option">
+            <input type="radio" name="speedOfService" value="4">
+            <span class="rating-circle">4</span>
+            <span class="rating-label">Very Good</span>
+          </label>
+          <label class="rating-option">
+            <input type="radio" name="speedOfService" value="5">
+            <span class="rating-circle">5</span>
+            <span class="rating-label">Excellent</span>
+          </label>
+        </div>
+      </div>
+
       <!-- Additional Comments -->
       <div class="form-group">
         <label>Additional Comments</label>
         <textarea id="additionalComments" placeholder="Tell us more about your experience..."></textarea>
+      </div>
+
+      <!-- NEW: Recommendation likelihood (0-10) -->
+      <div class="form-group">
+        <label>How likely are you to recommend GAP to a friend or colleague? <span class="optional">(0 = Not at all, 10 = Extremely likely)</span></label>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <input type="range" id="recommendLikelihood" min="0" max="10" value="8" style="flex:1;">
+          <div id="recommendValue" style="min-width:36px; text-align:center; font-weight:700;">8</div>
+        </div>
       </div>
 
       <!-- Optional Fields -->
@@ -172,6 +214,7 @@
       <div class="form-group">
         <label>Phone <span class="optional">(optional)</span></label>
         <input type="tel" id="phone" placeholder="+233 24 000 0000">
+        <span class="phone-hint">Optional — include country code if possible</span>
       </div>
 
       <button type="submit" class="submit-btn" id="submitBtn">Submit Feedback</button>
@@ -192,5 +235,17 @@
   <script src="logo.js"></script>
   <script src="config.js"></script>
   <script src="main.js"></script>
+
+  <script>
+    // live update label for recommend slider
+    document.addEventListener('DOMContentLoaded', function() {
+      const slider = document.getElementById('recommendLikelihood');
+      const label = document.getElementById('recommendValue');
+      if (slider && label) {
+        label.textContent = slider.value;
+        slider.addEventListener('input', () => { label.textContent = slider.value; });
+      }
+    });
+  </script>
 </body>
 </html>
