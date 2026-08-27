@@ -8,9 +8,9 @@
 </head>
 <body>
  <div class="container master-container">
-    <div class="header" style="text-align:center;margin-bottom:8px;">
-      <h1 style="margin:6px 0 4px;">Feedbacks — Master Monitor</h1>
-      <div class="muted" style="color:#64748b">Live view of submitted feedbacks</div>
+    <div class="header" style="text-align:center;margin-bottom:6px;">
+      <h1 style="margin:6px 0 2px;font-size:18px;">Feedbacks — Master Monitor</h1>
+      <div class="muted" style="color:#64748b;font-size:13px;">Live view of submitted feedbacks</div>
     </div>
 
     <div class="top-actions">
@@ -19,7 +19,7 @@
         <input id="fromDate" type="date" />
         <label for="toDate" style="font-size:13px;color:#475569;">To</label>
         <input id="toDate" type="date" />
-        <select id="filterRating" style="min-width:170px;">
+        <select id="filterRating" style="min-width:150px;">
           <option value="">Filter by overall (any)</option>
           <option value="5">Overall = 5</option>
           <option value="4">Overall = 4</option>
@@ -31,8 +31,8 @@
       </div>
 
       <div class="right">
+        <!-- Refresh left for manual refresh but page auto-loads on open -->
         <button id="btnLive" class="btn">Refresh (Live)</button>
-        <button id="btnUseSample" class="btn secondary">Use Sample</button>
         <button id="btnExport" class="btn secondary">Export CSV</button>
         <button id="btnPrint" class="btn secondary">Print Table</button>
       </div>
@@ -49,9 +49,9 @@
 
     <div class="service-averages" id="serviceAverages"></div>
 
-    <div id="status" class="muted" style="margin-top:8px;">Showing sample data — click "Refresh (Live)" to load from server</div>
+    <div id="status" class="muted" style="margin-top:6px;font-size:13px;">Loading live data…</div>
 
-    <div class="table-wrap" id="tableWrap" style="margin-top:12px;">
+    <div class="table-wrap" id="tableWrap" style="margin-top:10px;">
       <table class="feedbacks" id="feedbackTable" aria-live="polite">
         <thead id="tableHead">
           <tr>
@@ -81,59 +81,15 @@
     </div>
   </div>
 
-  <script src="logo-data.js"></script>
-  <script src="logo.js"></script>
-
   <script>
     // === configuration ===
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzJ1tOsTZ23rLudil3pLqBBlIR2KCyEUfU2VU6dWJQXJ2vnZgio3ck2dz3c26YpxFPdaQ/exec'; // set your Apps Script URL
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzJ1tOsTZ23rLudil3pLqBBlIR2KCyEUfU2VU6dWJQXJ2vnZgio3ck2dz3c26YpxFPdaQ/exec';
 
-    const SAMPLE_DATA = [
-      {
-        "Timestamp":"2026-08-26T16:10:12.000Z",
-        "Overall Satisfaction":"5",
-        "Quality of Service":"5",
-        "Timeliness":"4",
-        "Staff Friendliness":"5",
-        "Speed of Service":"5",
-        "Recommend (1-5)":"5",
-        "Additional Comments":"Great service, very polite staff. Quick processing.",
-        "Name":"Ama",
-        "Phone":"+233240000001"
-      },
-      {
-        "Timestamp":"2026-08-25T14:02:03.000Z",
-        "Overall Satisfaction":"3",
-        "Quality of Service":"3",
-        "Timeliness":"3",
-        "Staff Friendliness":"2",
-        "Speed of Service":"3",
-        "Recommend (1-5)":"3",
-        "Additional Comments":"Long wait time. Could improve queue management.",
-        "Name":"Kofi",
-        "Phone":""
-      },
-      {
-        "Timestamp":"2026-08-24T09:45:20.000Z",
-        "Overall Satisfaction":"4",
-        "Quality of Service":"4",
-        "Timeliness":"4",
-        "Staff Friendliness":"4",
-        "Speed of Service":"4",
-        "Recommend (1-5)":"4",
-        "Additional Comments":"Good overall. Friendly tellers.",
-        "Name":"Adwoa",
-        "Phone":"+233240000002"
-      }
-    ];
-
-    // === key normalization (keeps compatibility with existing server responses) ===
+    // === key normalization ===
     const KEY_MAP = {
-      'timestamp':'Timestamp','Timestamp':'Timestamp',
-      'overallsatisfaction':'Overall Satisfaction','overall satisfaction':'Overall Satisfaction','overall':'Overall Satisfaction','OverallSatisfaction':'Overall Satisfaction','Overall Satisfaction':'Overall Satisfaction',
+      'timestamp':'Timestamp','overallsatisfaction':'Overall Satisfaction','overall satisfaction':'Overall Satisfaction','overall':'Overall Satisfaction','OverallSatisfaction':'Overall Satisfaction','Overall Satisfaction':'Overall Satisfaction',
       'qualityofservice':'Quality of Service','quality of service':'Quality of Service','quality':'Quality of Service','QualityOfService':'Quality of Service','Quality of Service':'Quality of Service',
-      'timeliness':'Timeliness','Timeliness':'Timeliness',
-      'stafffriendliness':'Staff Friendliness','staff friendliness':'Staff Friendliness','friendliness':'Staff Friendliness','StaffFriendliness':'Staff Friendliness','Staff Friendliness':'Staff Friendliness',
+      'timeliness':'Timeliness','stafffriendliness':'Staff Friendliness','staff friendliness':'Staff Friendliness','friendliness':'Staff Friendliness','StaffFriendliness':'Staff Friendliness','Staff Friendliness':'Staff Friendliness',
       'speedofservice':'Speed of Service','speed of service':'Speed of Service','SpeedOfService':'Speed of Service','Speed of Service':'Speed of Service',
       'recommend':'Recommend (1-5)','recommend (1-5)':'Recommend (1-5)','Recommend (1-5)':'Recommend (1-5)',
       'additionalcomments':'Additional Comments','additional comments':'Additional Comments','comments':'Additional Comments','AdditionalComments':'Additional Comments','Additional Comments':'Additional Comments',
@@ -142,17 +98,7 @@
 
     function normalizeRow(raw) {
       const out = {
-        'Timestamp':'',
-        'Overall Satisfaction':'',
-        'Quality of Service':'',
-        'Timeliness':'',
-        'Staff Friendliness':'',
-        'Speed of Service':'',
-        'Recommend (1-5)':'',
-        'Additional Comments':'',
-        'Name':'',
-        'Phone':'',
-        'Email':''
+        'Timestamp':'','Overall Satisfaction':'','Quality of Service':'','Timeliness':'','Staff Friendliness':'','Speed of Service':'','Recommend (1-5)':'','Additional Comments':'','Name':'','Phone':'','Email':''
       };
       for (const k in raw) {
         if (!Object.prototype.hasOwnProperty.call(raw,k)) continue;
@@ -169,8 +115,8 @@
     }
 
     // === state & rendering ===
-    let allRows = SAMPLE_DATA.slice();
-    let filteredRows = allRows.slice();
+    let allRows = [];
+    let filteredRows = [];
 
     function formatTimestamp(ts){ try{ const d=new Date(ts); return isNaN(d.getTime()) ? ts : d.toLocaleString(); } catch(e){ return ts; } }
     function escapeHtml(s){ if (!s && s !== 0) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -201,8 +147,8 @@
         card.className = 'service-card';
         card.innerHTML = `
           <div class="title">${escapeHtml(s.label)}</div>
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-            <div style="font-size:16px;font-weight:700;color:#0f172a;">${s.avg ? s.avg.toFixed(2) : '—'}</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <div style="font-size:14px;font-weight:700;color:#0f172a;">${s.avg ? s.avg.toFixed(2) : '—'}</div>
             <div class="small" style="color:#64748b;">${s.count} rated</div>
           </div>
           <div class="bar-bg"><div class="bar-fill" style="width:${pct}%;"></div></div>
@@ -247,7 +193,7 @@
           <td style="text-align:center">${escapeHtml(r['Recommend (1-5)'] || '')}</td>
           <td>${escapeHtml(r['Name'] || '')}</td>
           <td class="phone-cell">${escapeHtml(r['Phone'] || '')}</td>
-          <td title="${escapeHtml(r['Additional Comments'] || '')}">${escapeHtml(r['Additional Comments'] ? (r['Additional Comments'].slice(0,200)) : '')}${(r['Additional Comments'] && r['Additional Comments'].length>200)?'…':''}</td>
+          <td class="comments-cell" title="${escapeHtml(r['Additional Comments'] || '')}">${escapeHtml(r['Additional Comments'] ? (r['Additional Comments'].slice(0,200)) : '')}${(r['Additional Comments'] && r['Additional Comments'].length>200)?'…':''}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -306,16 +252,11 @@
       const ratingFilter = document.getElementById('filterRating').value;
       let fromTS = from ? new Date(from) : null;
       let toTS = to ? new Date(to) : null;
-      if (toTS) {
-        // include entire day for 'to'
-        toTS.setHours(23,59,59,999);
-      }
+      if (toTS) toTS.setHours(23,59,59,999);
       filteredRows = allRows.filter(r => {
-        // rating filter
         if (ratingFilter) {
           if (String(r['Overall Satisfaction']) !== ratingFilter) return false;
         }
-        // date filter
         if (fromTS || toTS) {
           const ts = r.Timestamp ? new Date(r.Timestamp) : null;
           if (!ts || isNaN(ts.getTime())) return false;
@@ -330,6 +271,7 @@
     }
     document.getElementById('btnApplyFilters').addEventListener('click', applyFilters);
 
+    // CSV export (ordered headers)
     function downloadCSV(rows) {
       if (!rows || rows.length === 0) { alert('No rows to export'); return; }
       const headers = ['Timestamp','Overall Satisfaction','Quality of Service','Timeliness','Staff Friendliness','Speed of Service','Recommend (1-5)','Name','Phone','Additional Comments'];
@@ -343,24 +285,21 @@
     }
     document.getElementById('btnExport').addEventListener('click', ()=> downloadCSV(filteredRows));
 
-    document.getElementById('btnUseSample').addEventListener('click', ()=> {
-      allRows = SAMPLE_DATA.slice();
-      filteredRows = allRows.slice();
-      document.getElementById('status').textContent = 'Showing sample data';
-      renderKPIs(filteredRows);
-      renderTable(filteredRows);
-    });
+    // Print only the table content
+    document.getElementById('btnPrint').addEventListener('click', ()=> window.print());
 
-    // Print only the table content (opens print preview showing table area via @media print)
-    document.getElementById('btnPrint').addEventListener('click', printVisibleTable);
-    function printVisibleTable() {
-      // Use existing @media print rules: hide everything except .table-wrap
-      window.print();
+    // normalize, sort (latest first)
+    function sortRowsByTimestampDesc(rows) {
+      return rows.slice().sort((a,b) => {
+        const da = a.Timestamp ? new Date(a.Timestamp) : 0;
+        const db = b.Timestamp ? new Date(b.Timestamp) : 0;
+        return db - da;
+      });
     }
 
-    // Load live data via JSONP and normalize keys
+    // Load live data via JSONP, normalize keys, sort newest first, and render
     function loadLive() {
-      if (!SCRIPT_URL) { alert('SCRIPT_URL not set in master.html.'); return; }
+      if (!SCRIPT_URL) { document.getElementById('status').textContent = 'SCRIPT_URL not configured.'; return; }
       document.getElementById('status').textContent = 'Loading live data…';
       const callbackName = '__master_handleLive_' + Date.now();
       const existing = document.getElementById('_jsonp_master'); if (existing) existing.remove();
@@ -368,7 +307,9 @@
         try {
           if (!Array.isArray(data)) { document.getElementById('status').textContent = 'Live load returned unexpected data.'; return; }
           // Normalize incoming rows to canonical keys expected by the UI
-          allRows = normalizeRows(data);
+          const normalized = normalizeRows(data);
+          // Sort newest first
+          allRows = sortRowsByTimestampDesc(normalized);
           filteredRows = allRows.slice();
           document.getElementById('status').textContent = 'Loaded live data (' + allRows.length + ' rows)';
           renderKPIs(filteredRows);
@@ -386,10 +327,12 @@
     }
     document.getElementById('btnLive').addEventListener('click', loadLive);
 
-    // initial
-    renderKPIs(filteredRows);
-    renderTable(filteredRows);
-    if (SCRIPT_URL) { document.getElementById('status').textContent = 'Auto-loading live data…'; loadLive(); }
+    // initial auto-load (page loads live data automatically)
+    (function init() {
+      renderKPIs([]); // placeholder
+      renderTable([]);
+      loadLive();     // auto load on page open
+    })();
   </script>
 </body>
 </html>
