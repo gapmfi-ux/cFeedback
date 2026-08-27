@@ -5,8 +5,6 @@
   <title>Feedbacks — Master Monitor</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="styles.css">
-  <!-- Chart.js CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     /* Container expanded for desktop monitoring */
     .container {
@@ -17,51 +15,45 @@
       min-height: 640px;
     }
 
+    /* Top actions (buttons) moved to the top-right */
+    .top-actions {
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      margin-bottom:12px;
+    }
+    .top-actions .btn { padding:8px 12px; border-radius:8px; border:none; cursor:pointer; background:#1a237e; color:white; font-weight:600; }
+    .top-actions .btn.secondary { background:#edf2ff; color:#1a237e; border:1px solid #cbd5e0; }
+
     /* Page-specific */
-    .top-controls { display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; }
-    .kpi-row { display:flex; gap:12px; align-items:stretch; flex-wrap:wrap; }
+    .kpi-row { display:flex; gap:12px; align-items:stretch; flex-wrap:wrap; margin-bottom:10px; }
     .kpi { background:#f7fafc; padding:12px 16px; border-radius:8px; min-width:140px; text-align:center; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
     .kpi .num { font-size:20px; font-weight:700; color:#1a237e; }
     .kpi .hint { font-size:12px; color:#64748b; margin-top:6px; }
-    .controls { display:flex; gap:8px; align-items:center; }
-    .table-wrap { overflow-x:auto; margin-top:16px; }
-    table.feedbacks { width:100%; border-collapse: collapse; font-size:14px; }
-    table.feedbacks th, table.feedbacks td { padding:10px; border:1px solid #eef2f7; text-align:left; vertical-align:top; }
-    table.feedbacks th { background:#fbfdff; color:#2d3748; font-weight:700; white-space:nowrap; }
-    .badge { display:inline-block; padding:6px 10px; border-radius:999px; color:#fff; font-weight:700; min-width:28px; text-align:center; }
-    .rating-5 { background:#10b981; } /* green */
-    .rating-4 { background:#3b82f6; } /* blue */
-    .rating-3 { background:#f59e0b; } /* amber */
-    .rating-2 { background:#f97316; } /* orange */
-    .rating-1 { background:#ef4444; } /* red */
-    .small { font-size:13px; color:#718096; }
-    .search-row { display:flex; gap:8px; align-items:center; margin-top:10px; }
-    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.4); display:none; align-items:center; justify-content:center; z-index:9999; }
-    .modal { background:white; padding:18px; border-radius:10px; max-width:840px; width:92%; max-height:80vh; overflow:auto; box-shadow:0 20px 60px rgba(0,0,0,0.25); }
-    .modal h3 { margin-top:0; }
-    .right { text-align:right; }
-    .logo-inline { width:140px; height:auto; display:block; margin:0 auto 12px; }
-    .muted { color:#94a3b8; font-size:13px; }
-    .controls .btn { padding:8px 12px; border-radius:8px; border:none; cursor:pointer; background:#1a237e; color:white; font-weight:600; }
-    .controls .btn.secondary { background:#edf2ff; color:#1a237e; border:1px solid #cbd5e0; }
-
-    /* Service averages panel */
-    .service-averages { display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; }
+    .service-averages { display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; margin-bottom:12px; }
     .service-card { background:#fff; border:1px solid #eef2f7; padding:12px; border-radius:8px; min-width:220px; flex:1 1 220px; }
     .service-card .title { font-weight:700; color:#334155; margin-bottom:6px; }
     .bar-bg { height:12px; background:#eef2f7; border-radius:999px; overflow:hidden; }
     .bar-fill { height:12px; background:linear-gradient(90deg,#3b82f6,#10b981); width:0%; border-radius:999px; }
 
-    /* Chart area */
-    .charts { display:flex; gap:18px; margin-top:18px; align-items:stretch; flex-wrap:wrap; }
-    .chart-card { flex:1 1 300px; background:#fff; border:1px solid #eef2f7; padding:12px; border-radius:8px; }
-    .chart-card canvas { width:100% !important; height:240px !important; }
-
-    /* Row hover to show that row is clickable */
+    .search-row { display:flex; gap:8px; align-items:center; margin-top:8px; margin-bottom:8px; }
+    .table-wrap { overflow-x:auto; margin-top:10px; }
+    table.feedbacks { width:100%; border-collapse: collapse; font-size:14px; }
+    table.feedbacks th, table.feedbacks td { padding:10px; border:1px solid #eef2f7; text-align:left; vertical-align:top; }
+    table.feedbacks th { background:#fbfdff; color:#2d3748; font-weight:700; white-space:nowrap; }
     table.feedbacks tbody tr { cursor:pointer; }
     table.feedbacks tbody tr:hover { background:#fbfbff; }
     td.phone-cell { color:#1a237e; text-decoration:underline; cursor:pointer; }
+
+    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.4); display:none; align-items:center; justify-content:center; z-index:9999; }
+    .modal { background:white; padding:18px; border-radius:10px; max-width:840px; width:92%; max-height:80vh; overflow:auto; box-shadow:0 20px 60px rgba(0,0,0,0.25); }
+    .logo-inline { width:140px; height:auto; display:block; margin:0 auto 12px; }
+    .muted { color:#94a3b8; font-size:13px; }
     .help-inline { font-size:12px; color:#64748b; margin-top:6px; }
+
+    /* Buttons look consistent */
+    .btn { padding:8px 12px; border-radius:8px; border:none; cursor:pointer; background:#1a237e; color:white; font-weight:600; }
+    .btn.secondary { background:#edf2ff; color:#1a237e; border:1px solid #cbd5e0; }
   </style>
 </head>
 <body>
@@ -72,67 +64,54 @@
       <div class="muted">Live view of submitted feedbacks (sample data initially)</div>
     </div>
 
-    <div class="top-controls">
-      <div style="flex:1 1 560px;">
-        <div class="kpi-row" id="kpiRow">
-          <div class="kpi">
-            <div class="small">Total submissions</div>
-            <div class="num" id="kpiCount">—</div>
-            <div class="hint">Number of rows shown (respecting filters)</div>
-          </div>
-          <div class="kpi">
-            <div class="small">Average overall</div>
-            <div class="num" id="kpiAvg">—</div>
-            <div class="hint">Mean of Overall Satisfaction (1–5)</div>
-          </div>
-          <div class="kpi">
-            <div class="small">% 4–5 stars</div>
-            <div class="num" id="kpiGoodPct">—</div>
-            <div class="hint">Share of responses rated 4 or 5</div>
-          </div>
-          <div class="kpi">
-            <div class="small">Median overall</div>
-            <div class="num" id="kpiMedian">—</div>
-            <div class="hint">Median of Overall (robust vs outliers)</div>
-          </div>
-        </div>
+    <!-- Top-right action buttons -->
+    <div class="top-actions" id="topActions">
+      <button id="btnLive" class="btn">Refresh (Live)</button>
+      <button id="btnUseSample" class="btn secondary">Use Sample</button>
+      <button id="btnExport" class="btn secondary">Export CSV</button>
+    </div>
 
-        <!-- Help text under KPIs -->
-        <div class="help-inline">KPIs: Average shows central tendency; Median helps when there are outliers; % 4–5 gives quick "good" share. Use filters to focus on periods or segments.</div>
-
-        <!-- Service averages -->
-        <div class="service-averages" id="serviceAverages"></div>
-
-        <div class="charts" style="margin-top:14px;">
-          <div class="chart-card">
-            <strong>Rating distribution (Overall)</strong>
-            <canvas id="distChart"></canvas>
-          </div>
-          <div class="chart-card">
-            <strong>Submissions by day (last 30 days)</strong>
-            <canvas id="trendChart"></canvas>
-          </div>
-        </div>
-
-        <div class="search-row" style="margin-top:12px;">
-          <input id="searchInput" placeholder="Search name, phone, comments..." style="padding:8px 12px; border-radius:8px; border:1px solid #e6eef7; width:360px;">
-          <select id="filterRating" style="padding:8px 10px; border-radius:8px; border:1px solid #e6eef7;">
-            <option value="">Filter by overall (any)</option>
-            <option value="5">Overall = 5</option>
-            <option value="4">Overall = 4</option>
-            <option value="3">Overall = 3</option>
-            <option value="2">Overall = 2</option>
-            <option value="1">Overall = 1</option>
-          </select>
-          <button id="btnApplyFilters" class="btn secondary">Apply</button>
-        </div>
+    <!-- KPIs -->
+    <div class="kpi-row" id="kpiRow">
+      <div class="kpi">
+        <div class="small">Total submissions</div>
+        <div class="num" id="kpiCount">—</div>
+        <div class="hint">Number of rows shown (respecting filters)</div>
       </div>
-
-      <div class="controls">
-        <button id="btnLive" class="btn">Refresh (Live)</button>
-        <button id="btnUseSample" class="btn secondary">Use Sample</button>
-        <button id="btnExport" class="btn secondary">Export CSV</button>
+      <div class="kpi">
+        <div class="small">Average overall</div>
+        <div class="num" id="kpiAvg">—</div>
+        <div class="hint">Mean of Overall Satisfaction (1–5)</div>
       </div>
+      <div class="kpi">
+        <div class="small">% 4–5 stars</div>
+        <div class="num" id="kpiGoodPct">—</div>
+        <div class="hint">Share of responses rated 4 or 5</div>
+      </div>
+      <div class="kpi">
+        <div class="small">Median overall</div>
+        <div class="num" id="kpiMedian">—</div>
+        <div class="hint">Median of Overall (robust vs outliers)</div>
+      </div>
+    </div>
+
+    <div class="help-inline">KPIs: Average shows central tendency; Median helps when there are outliers; % 4–5 gives a quick "good" share. Use filters to focus on periods or segments.</div>
+
+    <!-- Service averages -->
+    <div class="service-averages" id="serviceAverages"></div>
+
+    <!-- Search & filters -->
+    <div class="search-row">
+      <input id="searchInput" placeholder="Search name, phone, comments..." style="padding:8px 12px; border-radius:8px; border:1px solid #e6eef7; width:360px;">
+      <select id="filterRating" style="padding:8px 10px; border-radius:8px; border:1px solid #e6eef7;">
+        <option value="">Filter by overall (any)</option>
+        <option value="5">Overall = 5</option>
+        <option value="4">Overall = 4</option>
+        <option value="3">Overall = 3</option>
+        <option value="2">Overall = 2</option>
+        <option value="1">Overall = 1</option>
+      </select>
+      <button id="btnApplyFilters" class="btn secondary">Apply</button>
     </div>
 
     <div id="status" class="muted" style="margin-bottom:6px;">Showing sample data — click "Refresh (Live)" to load from server</div>
@@ -211,14 +190,8 @@
     let allRows = SAMPLE_DATA.slice();
     let filteredRows = allRows.slice();
 
-    // Chart instances
-    let distChart = null;
-    let trendChart = null;
-
     // Utilities
-    function formatTimestamp(ts) {
-      try { const d = new Date(ts); return d.toLocaleString(); } catch (e) { return ts; }
-    }
+    function formatTimestamp(ts) { try { const d = new Date(ts); return d.toLocaleString(); } catch (e) { return ts; } }
     function badgeClass(n) { return 'rating-' + (n>=1 && n<=5 ? n : 0); }
     function escapeHtml(s) { if (!s && s !== 0) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
@@ -281,90 +254,6 @@
       renderServiceAverages(rows);
     }
 
-    // Build distribution data for Chart.js
-    function distributionCounts(rows) {
-      const counts = [0,0,0,0,0]; // index 0 -> 1-star
-      rows.forEach(r => {
-        const n = Number(r['Overall Satisfaction']||0);
-        if (n >=1 && n <=5) counts[n-1] += 1;
-      });
-      return counts;
-    }
-
-    // Build trend data (last 30 days)
-    function trendByDay(rows, days = 30) {
-      // generate labels for last `days` days (today included)
-      const labels = [];
-      const map = {}; // dateStr -> count
-      for (let i = days-1; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        const key = d.toISOString().slice(0,10); // YYYY-MM-DD
-        labels.push(key);
-        map[key] = 0;
-      }
-      rows.forEach(r => {
-        const d = new Date(r.Timestamp);
-        if (isNaN(d)) return;
-        const key = d.toISOString().slice(0,10);
-        if (map.hasOwnProperty(key)) map[key] += 1;
-      });
-      const data = labels.map(l => map[l]||0);
-      return { labels, data };
-    }
-
-    // Create / update charts
-    function renderCharts(rows) {
-      // distribution
-      const distCounts = distributionCounts(rows);
-      const distCtx = document.getElementById('distChart').getContext('2d');
-      if (distChart) distChart.destroy();
-      distChart = new Chart(distCtx, {
-        type: 'bar',
-        data: {
-          labels: ['1','2','3','4','5'],
-          datasets: [{
-            label: 'Count',
-            data: distCounts,
-            backgroundColor: ['#ef4444','#f97316','#f59e0b','#3b82f6','#10b981'],
-          }]
-        },
-        options: {
-          plugins: { legend: { display:false } },
-          scales: {
-            y: { beginAtZero:true, ticks: { precision:0 } }
-          }
-        }
-      });
-
-      // trend
-      const t = trendByDay(rows, 30);
-      const trendCtx = document.getElementById('trendChart').getContext('2d');
-      if (trendChart) trendChart.destroy();
-      trendChart = new Chart(trendCtx, {
-        type: 'line',
-        data: {
-          labels: t.labels,
-          datasets: [{
-            label: 'Submissions',
-            data: t.data,
-            fill: true,
-            backgroundColor: 'rgba(59,130,246,0.12)',
-            borderColor: '#3b82f6',
-            tension: 0.25,
-            pointRadius: 2
-          }]
-        },
-        options: {
-          plugins: { legend: { display:false } },
-          scales: {
-            x: { display: true, ticks: { maxRotation:45, minRotation:0 } },
-            y: { beginAtZero:true, ticks: { precision:0 } }
-          }
-        }
-      });
-    }
-
     // Render table (no Actions column)
     function renderTable(rows) {
       const tbody = document.getElementById('tableBody');
@@ -401,7 +290,6 @@
           if (!phone) { alert('No phone available for this entry.'); return; }
           try {
             await navigator.clipboard.writeText(phone);
-            // simple feedback
             td.style.background = '#ecfdf5';
             setTimeout(()=> td.style.background = '', 700);
             alert('Phone copied: ' + phone);
@@ -447,11 +335,10 @@
       });
       renderKPIs(filteredRows);
       renderTable(filteredRows);
-      renderCharts(filteredRows);
     }
     document.getElementById('btnApplyFilters').addEventListener('click', applyFilters);
 
-    // Export
+    // Export CSV
     function downloadCSV(rows) {
       if (!rows || rows.length === 0) { alert('No rows to export'); return; }
       const headers = Object.keys(rows[0]);
@@ -474,7 +361,6 @@
       document.getElementById('status').textContent = 'Showing sample data';
       renderKPIs(filteredRows);
       renderTable(filteredRows);
-      renderCharts(filteredRows);
     });
 
     // Live JSONP load
@@ -500,7 +386,6 @@
           document.getElementById('status').textContent = 'Loaded live data (' + allRows.length + ' rows)';
           renderKPIs(filteredRows);
           renderTable(filteredRows);
-          renderCharts(filteredRows);
         } finally {
           const script = document.getElementById('_jsonp_master');
           if (script) script.remove();
@@ -521,7 +406,6 @@
     // Initial render (sample)
     renderKPIs(filteredRows);
     renderTable(filteredRows);
-    renderCharts(filteredRows);
 
     // Auto-load live if SCRIPT_URL set
     if (SCRIPT_URL) {
