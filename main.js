@@ -1,11 +1,11 @@
-/// main.js — fetch-only submission via FeedbackAPI
+// main.js — submit using the JSONP/script-tag API (API.processForm)
 document.addEventListener('DOMContentLoaded', function() {
   const form = document.getElementById('feedbackForm');
   if (form) form.addEventListener('submit', handleFormSubmit);
-  console.log('Main init: FeedbackAPI', typeof window.FeedbackAPI !== 'undefined' ? 'present' : 'MISSING');
+  console.log('Main init: API', typeof window.API !== 'undefined' ? 'present' : 'MISSING');
 });
 
-async function handleFormSubmit(e){
+async function handleFormSubmit(e) {
   e.preventDefault();
   const submitBtn = document.getElementById('submitBtn');
 
@@ -24,22 +24,24 @@ async function handleFormSubmit(e){
     recommend: String(ratings.recommend.value),
     additionalComments: (document.getElementById('additionalComments') || {}).value || '',
     name: (document.getElementById('name') || {}).value || '',
-    phone: (document.getElementById('phone') || {}).value.trim() || ''
+    phone: (document.getElementById('phone') || {}).value.trim() || '',
+    // optional: include a client submission id to help server-side checks
+    _submissionId: 'sid_' + Date.now() + '_' + Math.random().toString(36).slice(2,8)
   };
 
   showLoadingOverlay('Submitting your feedback…');
   if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting...'; }
 
-  const client = window.FeedbackAPI;
-  if (!client || typeof client.processForm !== 'function') {
+  if (!window.API || typeof window.API.processForm !== 'function') {
     hideLoadingOverlay();
     if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Feedback'; }
-    showInlineError('Submission failed: client not available.');
+    showInlineError('Submission failed: API client not available.');
     return;
   }
 
   try {
-    const res = await client.processForm(formData, { timeout: 20000 });
+    // This uses the same script-tag JSONP request as your inventory module
+    const res = await API.processForm(formData, { timeout: 20000 });
     hideLoadingOverlay();
     if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Feedback'; }
 
@@ -51,15 +53,13 @@ async function handleFormSubmit(e){
   } catch (err) {
     hideLoadingOverlay();
     if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Feedback'; }
-    // If CORS error occurs the browser will throw a TypeError with little detail
-    showInlineError('Submission failed: ' + (err && err.message ? err.message : 'Network or CORS error'));
+    showInlineError('Submission failed: ' + (err && err.message ? err.message : 'Network error'));
     console.error('processForm error', err);
   }
 }
 
-/* Keep helper functions (getRatings(), validateRatings(), showLoadingOverlay(), hideLoadingOverlay(), showThankYouReplace(), showInlineError(), escapeHtml()) as you already have them. */
-/* Helpers (unchanged) */
-
+/* include your existing helpers (getRatings, validateRatings, showLoadingOverlay, hideLoadingOverlay,
+   showThankYouReplace, showInlineError, escapeHtml) unchanged */
 function getRatings() {
   return {
     overallSatisfaction: document.querySelector('input[name="overallSatisfaction"]:checked'),
