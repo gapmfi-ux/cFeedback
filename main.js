@@ -1,7 +1,10 @@
-// main.js — caller using FeedbackAPI.processForm(formData)
+// main.js — caller using FeedbackAPI.processForm(formData) (defensive)
 document.addEventListener('DOMContentLoaded', function() {
   const form = document.getElementById('feedbackForm');
   if (form) form.addEventListener('submit', handleFormSubmit);
+
+  // quick debug: log whether FeedbackAPI loaded
+  console.log('Main init: FeedbackAPI', typeof window.FeedbackAPI !== 'undefined' ? 'present' : 'MISSING', 'API', typeof window.API !== 'undefined' ? 'present' : 'MISSING');
 });
 
 async function handleFormSubmit(e) {
@@ -32,9 +35,23 @@ async function handleFormSubmit(e) {
   showLoadingOverlay('Submitting your feedback…');
   if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting...'; }
 
+  // Pick available API client (FeedbackAPI preferred, fallback to API)
+  const apiClient = (window.FeedbackAPI && typeof window.FeedbackAPI.processForm === 'function')
+    ? window.FeedbackAPI
+    : ((window.API && typeof window.API.processForm === 'function') ? window.API : null);
+
+  if (!apiClient) {
+    hideLoadingOverlay();
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Feedback'; }
+    const msg = 'Submission failed: no API client available (FeedbackAPI or API).';
+    console.error(msg);
+    showInlineError(msg);
+    return;
+  }
+
   try {
-    // NOTE: use FeedbackAPI instead of API
-    const res = await FeedbackAPI.processForm(formData, { timeout: 20000 });
+    const res = await apiClient.processForm(formData, { timeout: 20000 });
+    // expected res: { success: true, message: '...' }
     hideLoadingOverlay();
     if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Feedback'; }
 
@@ -51,7 +68,7 @@ async function handleFormSubmit(e) {
   }
 }
 
-/* Helpers */
+/* Helpers (unchanged) */
 
 function getRatings() {
   return {
@@ -66,7 +83,6 @@ function getRatings() {
 function validateRatings(ratings) {
   return Object.values(ratings).every(r => r !== null);
 }
-
 function showLoadingOverlay(text) {
   let ov = document.getElementById('submissionOverlay');
   if (!ov) {
@@ -81,7 +97,8 @@ function showLoadingOverlay(text) {
     `;
     document.body.appendChild(ov);
   } else {
-    ov.querySelector('.overlay-card div:nth-child(2)').textContent = text || 'Submitting…';
+    const d = ov.querySelector('.overlay-card div:nth-child(2)');
+    if (d) d.textContent = text || 'Submitting…';
     ov.style.display = 'flex';
   }
 }
