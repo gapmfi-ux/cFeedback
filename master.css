@@ -1,0 +1,175 @@
+/* master.css — styles only used by master.html (KPIs, table tweaks, top-actions, modal) */
+
+.container {
+  max-width: 1100px;
+  width: 95%;
+  margin: 24px auto;
+  padding: 22px;
+}
+
+/* Top actions */
+.top-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.top-actions .btn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  background: #1a237e;
+  color: white;
+  font-weight: 600;
+}
+.top-actions .btn.secondary {
+  background: #edf2ff;
+  color: #1a237e;
+  border: 1px solid #cbd5e0;
+}
+
+/* KPI row and cards */
+.kpi-row {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.kpi {
+  background: #f7fafc;
+  padding: 10px 12px;
+  border-radius: 8px;
+  min-width: 120px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+.kpi .num {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a237e;
+}
+.kpi .hint {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 6px;
+}
+
+/* small helper text */
+.help-inline {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+/* service average cards */
+.service-averages {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+.service-card {
+  background: #fff;
+  border: 1px solid #eef2f7;
+  padding: 10px;
+  border-radius: 8px;
+  min-width: 200px;
+  flex: 1 1 200px;
+}
+.service-card .title {
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 6px;
+}
+.bar-bg {
+  height: 10px;
+  background: #eef2f7;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.bar-fill {
+  height: 10px;
+  background: linear-gradient(90deg,#3b82f6,#10b981);
+  width: 0%;
+  border-radius: 999px;
+}
+
+/* search area */
+.search-row {
+  display:flex;
+  gap:8px;
+  align-items:center;
+  margin-top:10px;
+  margin-bottom:8px;
+}
+
+/* table tweaks */
+.table-wrap {
+  overflow-x: auto;
+  margin-top: 12px;
+}
+table.feedbacks {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+table.feedbacks th,
+table.feedbacks td {
+  padding: 8px;
+  border: 1px solid #eef2f7;
+  text-align: left;
+  vertical-align: top;
+}
+table.feedbacks th {
+  background: #fbfdff;
+  color: #2d3748;
+  font-weight: 700;
+  font-size: 12px;          /* reduced font */
+  white-space: normal;      /* allow wrapping */
+  word-break: break-word;
+}
+table.feedbacks td {
+  font-size: 13px;
+  line-height: 1.2;
+}
+table.feedbacks tbody tr {
+  cursor: pointer;
+}
+table.feedbacks tbody tr:hover {
+  background: #fbfbff;
+}
+td.phone-cell {
+  color: #1a237e;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+.modal {
+  background: white;
+  padding: 16px;
+  border-radius: 10px;
+  max-width: 840px;
+  width: 92%;
+  max-height: 80vh;
+  overflow: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+}
+
+/* small responsive adjustments */
+@media (max-width: 900px) {
+  .container { padding: 18px; }
+  .service-card { min-width: 180px; }
+}
