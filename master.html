@@ -5,103 +5,34 @@
   <title>Feedbacks — Master Monitor</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="styles.css">
-  <style>
-    /* Container expanded for desktop monitoring */
-    .container {
-      max-width: 1100px;
-      width: 95%;
-      margin: 24px auto;
-      padding: 26px;
-      min-height: 640px;
-    }
-
-    /* Top actions (buttons) moved to the top-right */
-    .top-actions {
-      display:flex;
-      justify-content:flex-end;
-      gap:10px;
-      margin-bottom:12px;
-    }
-    .top-actions .btn { padding:8px 12px; border-radius:8px; border:none; cursor:pointer; background:#1a237e; color:white; font-weight:600; }
-    .top-actions .btn.secondary { background:#edf2ff; color:#1a237e; border:1px solid #cbd5e0; }
-
-    /* Page-specific */
-    .kpi-row { display:flex; gap:12px; align-items:stretch; flex-wrap:wrap; margin-bottom:10px; }
-    .kpi { background:#f7fafc; padding:12px 16px; border-radius:8px; min-width:140px; text-align:center; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
-    .kpi .num { font-size:20px; font-weight:700; color:#1a237e; }
-    .kpi .hint { font-size:12px; color:#64748b; margin-top:6px; }
-    .service-averages { display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; margin-bottom:12px; }
-    .service-card { background:#fff; border:1px solid #eef2f7; padding:12px; border-radius:8px; min-width:220px; flex:1 1 220px; }
-    .service-card .title { font-weight:700; color:#334155; margin-bottom:6px; }
-    .bar-bg { height:12px; background:#eef2f7; border-radius:999px; overflow:hidden; }
-    .bar-fill { height:12px; background:linear-gradient(90deg,#3b82f6,#10b981); width:0%; border-radius:999px; }
-
-    .search-row { display:flex; gap:8px; align-items:center; margin-top:8px; margin-bottom:8px; }
-    .table-wrap { overflow-x:auto; margin-top:10px; }
-    table.feedbacks { width:100%; border-collapse: collapse; font-size:14px; }
-    table.feedbacks th, table.feedbacks td { padding:10px; border:1px solid #eef2f7; text-align:left; vertical-align:top; }
-    table.feedbacks th { background:#fbfdff; color:#2d3748; font-weight:700; white-space:nowrap; }
-    table.feedbacks tbody tr { cursor:pointer; }
-    table.feedbacks tbody tr:hover { background:#fbfbff; }
-    td.phone-cell { color:#1a237e; text-decoration:underline; cursor:pointer; }
-
-    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.4); display:none; align-items:center; justify-content:center; z-index:9999; }
-    .modal { background:white; padding:18px; border-radius:10px; max-width:840px; width:92%; max-height:80vh; overflow:auto; box-shadow:0 20px 60px rgba(0,0,0,0.25); }
-    .logo-inline { width:140px; height:auto; display:block; margin:0 auto 12px; }
-    .muted { color:#94a3b8; font-size:13px; }
-    .help-inline { font-size:12px; color:#64748b; margin-top:6px; }
-
-    /* Buttons look consistent */
-    .btn { padding:8px 12px; border-radius:8px; border:none; cursor:pointer; background:#1a237e; color:white; font-weight:600; }
-    .btn.secondary { background:#edf2ff; color:#1a237e; border:1px solid #cbd5e0; }
-  </style>
+  <link rel="stylesheet" href="master.css">
 </head>
 <body>
   <div class="container">
     <div class="header" style="text-align:center;">
-      <img id="logoImage" alt="GHP Microfinance logo" class="logo-inline" />
+      <img id="logoImage" alt="GAP logo" class="logo-inline" />
       <h1 style="margin:6px 0 4px;">Feedbacks — Master Monitor</h1>
       <div class="muted">Live view of submitted feedbacks (sample data initially)</div>
     </div>
 
-    <!-- Top-right action buttons -->
-    <div class="top-actions" id="topActions">
+    <div class="top-actions">
       <button id="btnLive" class="btn">Refresh (Live)</button>
       <button id="btnUseSample" class="btn secondary">Use Sample</button>
       <button id="btnExport" class="btn secondary">Export CSV</button>
     </div>
 
-    <!-- KPIs -->
     <div class="kpi-row" id="kpiRow">
-      <div class="kpi">
-        <div class="small">Total submissions</div>
-        <div class="num" id="kpiCount">—</div>
-        <div class="hint">Number of rows shown (respecting filters)</div>
-      </div>
-      <div class="kpi">
-        <div class="small">Average overall</div>
-        <div class="num" id="kpiAvg">—</div>
-        <div class="hint">Mean of Overall Satisfaction (1–5)</div>
-      </div>
-      <div class="kpi">
-        <div class="small">% 4–5 stars</div>
-        <div class="num" id="kpiGoodPct">—</div>
-        <div class="hint">Share of responses rated 4 or 5</div>
-      </div>
-      <div class="kpi">
-        <div class="small">Median overall</div>
-        <div class="num" id="kpiMedian">—</div>
-        <div class="hint">Median of Overall (robust vs outliers)</div>
-      </div>
+      <div class="kpi"><div class="small">Total submissions</div><div class="num" id="kpiCount">—</div><div class="hint">Rows shown</div></div>
+      <div class="kpi"><div class="small">Average overall</div><div class="num" id="kpiAvg">—</div><div class="hint">Mean of Overall</div></div>
+      <div class="kpi"><div class="small">% 4–5 stars</div><div class="num" id="kpiGoodPct">—</div><div class="hint">Share rated 4 or 5</div></div>
+      <div class="kpi"><div class="small">Median overall</div><div class="num" id="kpiMedian">—</div><div class="hint">Median Overall</div></div>
     </div>
 
-    <div class="help-inline">KPIs: Average shows central tendency; Median helps when there are outliers; % 4–5 gives a quick "good" share. Use filters to focus on periods or segments.</div>
+    <div class="help-inline">KPIs: Average, Median and % 4–5 give a quick view. Filters apply to the table and KPIs.</div>
 
-    <!-- Service averages -->
     <div class="service-averages" id="serviceAverages"></div>
 
-    <!-- Search & filters -->
-    <div class="search-row">
+    <div class="search-row" style="margin-top:10px;">
       <input id="searchInput" placeholder="Search name, phone, comments..." style="padding:8px 12px; border-radius:8px; border:1px solid #e6eef7; width:360px;">
       <select id="filterRating" style="padding:8px 10px; border-radius:8px; border:1px solid #e6eef7;">
         <option value="">Filter by overall (any)</option>
@@ -114,9 +45,9 @@
       <button id="btnApplyFilters" class="btn secondary">Apply</button>
     </div>
 
-    <div id="status" class="muted" style="margin-bottom:6px;">Showing sample data — click "Refresh (Live)" to load from server</div>
+    <div id="status" class="muted" style="margin-top:8px;">Showing sample data — click "Refresh (Live)" to load from server</div>
 
-    <div class="table-wrap" id="tableWrap">
+    <div class="table-wrap" id="tableWrap" style="margin-top:12px;">
       <table class="feedbacks" id="feedbackTable" aria-live="polite">
         <thead id="tableHead">
           <tr>
@@ -144,15 +75,13 @@
     </div>
   </div>
 
-  <!-- logo-data + loader -->
   <script src="logo-data.js"></script>
   <script src="logo.js"></script>
 
+  <!-- master page script (unchanged) -->
   <script>
-    // Set your Apps Script exec URL here to enable live data
-    const SCRIPT_URL = ''; // e.g. 'https://script.google.com/macros/s/XXXXX/exec'
+    const SCRIPT_URL = ''; // set your Apps Script URL
 
-    // Sample data for preview
     const SAMPLE_DATA = [
       {
         "Timestamp":"2026-08-26T16:10:12.000Z",
@@ -160,6 +89,8 @@
         "Quality of Service":"5",
         "Timeliness":"4",
         "Staff Friendliness":"5",
+        "Speed of Service":"5",
+        "Recommend (1-5)":"5",
         "Additional Comments":"Great service, very polite staff. Quick processing.",
         "Name":"Ama",
         "Phone":"+233240000001"
@@ -170,6 +101,8 @@
         "Quality of Service":"3",
         "Timeliness":"3",
         "Staff Friendliness":"2",
+        "Speed of Service":"3",
+        "Recommend (1-5)":"3",
         "Additional Comments":"Long wait time. Could improve queue management.",
         "Name":"Kofi",
         "Phone":""
@@ -180,46 +113,36 @@
         "Quality of Service":"4",
         "Timeliness":"4",
         "Staff Friendliness":"4",
+        "Speed of Service":"4",
+        "Recommend (1-5)":"4",
         "Additional Comments":"Good overall. Friendly tellers.",
         "Name":"Adwoa",
         "Phone":"+233240000002"
       }
     ];
 
-    // State
     let allRows = SAMPLE_DATA.slice();
     let filteredRows = allRows.slice();
 
-    // Utilities
-    function formatTimestamp(ts) { try { const d = new Date(ts); return d.toLocaleString(); } catch (e) { return ts; } }
-    function badgeClass(n) { return 'rating-' + (n>=1 && n<=5 ? n : 0); }
-    function escapeHtml(s) { if (!s && s !== 0) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function formatTimestamp(ts){ try{ const d=new Date(ts); return d.toLocaleString(); } catch(e){ return ts; } }
+    function escapeHtml(s){ if (!s && s !== 0) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-    // Median helper
-    function median(values) {
-      const nums = values.slice().sort((a,b)=>a-b);
-      if (nums.length === 0) return 0;
-      const mid = Math.floor(nums.length / 2);
-      if (nums.length % 2 === 0) return (nums[mid-1] + nums[mid]) / 2;
-      return nums[mid];
-    }
-
-    // Compute service averages
     function computeServiceAverages(rows) {
-      const metrics = [
-        { key: 'Overall Satisfaction', label: 'Overall Satisfaction' },
-        { key: 'Quality of Service', label: 'Quality of Service' },
-        { key: 'Timeliness', label: 'Timeliness' },
-        { key: 'Staff Friendliness', label: 'Staff Friendliness' }
+      const keys = [
+        {key:'Overall Satisfaction', label:'Overall Satisfaction'},
+        {key:'Quality of Service', label:'Quality of Service'},
+        {key:'Timeliness', label:'Timeliness'},
+        {key:'Staff Friendliness', label:'Staff Friendliness'},
+        {key:'Speed of Service', label:'Speed of Service'},
+        {key:'Recommend (1-5)', label:'Recommend (1-5)'}
       ];
-      return metrics.map(m => {
+      return keys.map(m => {
         const vals = rows.map(r => Number(r[m.key] || 0)).filter(v => v > 0);
         const avg = vals.length ? (vals.reduce((s,v)=>s+v,0)/vals.length) : 0;
         return { key: m.key, label: m.label, avg: avg, count: vals.length };
       });
     }
 
-    // Render service averages UI
     function renderServiceAverages(rows) {
       const container = document.getElementById('serviceAverages');
       container.innerHTML = '';
@@ -231,7 +154,7 @@
         card.innerHTML = `
           <div class="title">${escapeHtml(s.label)}</div>
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-            <div style="font-size:18px;font-weight:700;color:#0f172a;">${s.avg ? s.avg.toFixed(2) : '—'}</div>
+            <div style="font-size:16px;font-weight:700;color:#0f172a;">${s.avg ? s.avg.toFixed(2) : '—'}</div>
             <div class="small" style="color:#64748b;">${s.count} rated</div>
           </div>
           <div class="bar-bg"><div class="bar-fill" style="width:${pct}%;"></div></div>
@@ -240,11 +163,17 @@
       });
     }
 
-    // Render KPIs (including median)
+    function median(values){
+      const nums = values.slice().sort((a,b)=>a-b);
+      if (nums.length === 0) return 0;
+      const mid = Math.floor(nums.length/2);
+      return nums.length % 2 === 0 ? (nums[mid-1]+nums[mid])/2 : nums[mid];
+    }
+
     function renderKPIs(rows) {
       const count = rows.length;
       const overallVals = rows.map(r => Number(r['Overall Satisfaction']||0)).filter(v=>v>0);
-      const avg = overallVals.length ? (overallVals.reduce((s,v)=>s+v,0) / overallVals.length) : 0;
+      const avg = overallVals.length ? (overallVals.reduce((s,v)=>s+v,0)/overallVals.length) : 0;
       const goodCount = overallVals.filter(v => v >= 4).length;
       const med = median(overallVals);
       document.getElementById('kpiCount').textContent = count;
@@ -254,7 +183,6 @@
       renderServiceAverages(rows);
     }
 
-    // Render table (no Actions column)
     function renderTable(rows) {
       const tbody = document.getElementById('tableBody');
       tbody.innerHTML = '';
@@ -263,18 +191,17 @@
         tr.dataset.idx = idx;
         tr.innerHTML = `
           <td>${escapeHtml(formatTimestamp(r.Timestamp))}</td>
-          <td><span class="badge ${badgeClass(r['Overall Satisfaction'])}">${escapeHtml(r['Overall Satisfaction'])}</span></td>
-          <td>${escapeHtml(r['Quality of Service'])}</td>
-          <td>${escapeHtml(r['Timeliness'])}</td>
-          <td>${escapeHtml(r['Staff Friendliness'])}</td>
-          <td>${escapeHtml(r['Name'])}</td>
-          <td class="phone-cell">${escapeHtml(r['Phone'])}</td>
-          <td>${escapeHtml((r['Additional Comments']||'').slice(0,120))}${(r['Additional Comments'] && r['Additional Comments'].length>120)?'…':''}</td>
+          <td>${escapeHtml(r['Overall Satisfaction'] || '')}</td>
+          <td>${escapeHtml(r['Quality of Service'] || '')}</td>
+          <td>${escapeHtml(r['Timeliness'] || '')}</td>
+          <td>${escapeHtml(r['Staff Friendliness'] || '')}</td>
+          <td>${escapeHtml(r['Name'] || '')}</td>
+          <td class="phone-cell">${escapeHtml(r['Phone'] || '')}</td>
+          <td>${escapeHtml(r['Additional Comments'] ? (r['Additional Comments'].slice(0,200)) : '')}${(r['Additional Comments'] && r['Additional Comments'].length>200)?'…':''}</td>
         `;
         tbody.appendChild(tr);
       });
 
-      // Row click opens modal
       Array.from(tbody.querySelectorAll('tr')).forEach(tr => {
         tr.addEventListener('click', (e) => {
           const idx = Number(tr.dataset.idx);
@@ -282,16 +209,15 @@
         });
       });
 
-      // Phone cell click copies phone
       Array.from(tbody.querySelectorAll('.phone-cell')).forEach(td => {
         td.addEventListener('click', async (e) => {
-          e.stopPropagation(); // do not open modal
+          e.stopPropagation();
           const phone = td.textContent.trim();
-          if (!phone) { alert('No phone available for this entry.'); return; }
+          if (!phone) { alert('No phone available'); return; }
           try {
             await navigator.clipboard.writeText(phone);
             td.style.background = '#ecfdf5';
-            setTimeout(()=> td.style.background = '', 700);
+            setTimeout(()=>td.style.background='','700');
             alert('Phone copied: ' + phone);
           } catch (err) {
             const ta = document.createElement('textarea'); ta.value = phone; document.body.appendChild(ta); ta.select();
@@ -302,16 +228,17 @@
       });
     }
 
-    // Modal
     const modalBackdrop = document.getElementById('modalBackdrop');
     function openModal(item) {
       document.getElementById('modalTitle').textContent = `Feedback from ${item.Name || 'Anonymous'}`;
       const html = `
         <p><strong>Timestamp:</strong> ${escapeHtml(formatTimestamp(item.Timestamp))}</p>
-        <p><strong>Overall:</strong> <span class="badge ${badgeClass(item['Overall Satisfaction'])}">${escapeHtml(item['Overall Satisfaction'])}</span></p>
-        <p><strong>Quality:</strong> ${escapeHtml(item['Quality of Service'])}</p>
-        <p><strong>Timeliness:</strong> ${escapeHtml(item['Timeliness'])}</p>
-        <p><strong>Friendliness:</strong> ${escapeHtml(item['Staff Friendliness'])}</p>
+        <p><strong>Overall:</strong> ${escapeHtml(item['Overall Satisfaction']||'')}</p>
+        <p><strong>Quality:</strong> ${escapeHtml(item['Quality of Service']||'')}</p>
+        <p><strong>Timeliness:</strong> ${escapeHtml(item['Timeliness']||'')}</p>
+        <p><strong>Friendliness:</strong> ${escapeHtml(item['Staff Friendliness']||'')}</p>
+        <p><strong>Speed of Service:</strong> ${escapeHtml(item['Speed of Service']||'')}</p>
+        <p><strong>Recommend (1-5):</strong> ${escapeHtml(item['Recommend (1-5)']||'')}</p>
         <p><strong>Phone:</strong> ${escapeHtml(item.Phone || '')}</p>
         <p><strong>Comments:</strong><br>${escapeHtml(item['Additional Comments'] || '')}</p>
       `;
@@ -319,9 +246,8 @@
       modalBackdrop.style.display = 'flex';
     }
     document.getElementById('modalClose').addEventListener('click', ()=> modalBackdrop.style.display = 'none');
-    modalBackdrop.addEventListener('click', (ev)=> { if (ev.target === modalBackdrop) modalBackdrop.style.display = 'none'; });
+    modalBackdrop.addEventListener('click', (ev)=> { if (ev.target===modalBackdrop) modalBackdrop.style.display='none'; });
 
-    // Filters & search
     function applyFilters() {
       const q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
       const ratingFilter = document.getElementById('filterRating').value;
@@ -338,13 +264,10 @@
     }
     document.getElementById('btnApplyFilters').addEventListener('click', applyFilters);
 
-    // Export CSV
     function downloadCSV(rows) {
       if (!rows || rows.length === 0) { alert('No rows to export'); return; }
       const headers = Object.keys(rows[0]);
-      const csv = [headers.join(',')]
-        .concat(rows.map(r => headers.map(h => `"${String(r[h]||'').replace(/"/g,'""')}"`).join(',')))
-        .join('\n');
+      const csv = [headers.join(',')].concat(rows.map(r => headers.map(h => `"${String(r[h]||'').replace(/"/g,'""')}"`).join(','))).join('\n');
       const a = document.createElement('a');
       a.href = 'data:text/csv;charset=utf-8,%EF%BB%BF' + encodeURIComponent(csv);
       a.download = 'feedbacks.csv';
@@ -354,8 +277,7 @@
     }
     document.getElementById('btnExport').addEventListener('click', ()=> downloadCSV(filteredRows));
 
-    // Use sample
-    document.getElementById('btnUseSample').addEventListener('click', ()=>{
+    document.getElementById('btnUseSample').addEventListener('click', ()=> {
       allRows = SAMPLE_DATA.slice();
       filteredRows = allRows.slice();
       document.getElementById('status').textContent = 'Showing sample data';
@@ -363,55 +285,36 @@
       renderTable(filteredRows);
     });
 
-    // Live JSONP load
     function loadLive() {
-      if (!SCRIPT_URL) {
-        alert('SCRIPT_URL not set in master.html. Set it to your Apps Script web app URL to enable live load.');
-        return;
-      }
+      if (!SCRIPT_URL) { alert('SCRIPT_URL not set in master.html.'); return; }
       document.getElementById('status').textContent = 'Loading live data…';
       const callbackName = 'handleLiveData';
-      const existing = document.getElementById('_jsonp_master');
-      if (existing) existing.remove();
-
+      const existing = document.getElementById('_jsonp_master'); if (existing) existing.remove();
       window[callbackName] = function(data) {
         try {
-          if (!Array.isArray(data)) {
-            document.getElementById('status').textContent = 'Live load returned unexpected data.';
-            console.error('Live data:', data);
-            return;
-          }
+          if (!Array.isArray(data)) { document.getElementById('status').textContent = 'Live load returned unexpected data.'; return; }
           allRows = data;
           filteredRows = allRows.slice();
           document.getElementById('status').textContent = 'Loaded live data (' + allRows.length + ' rows)';
           renderKPIs(filteredRows);
           renderTable(filteredRows);
         } finally {
-          const script = document.getElementById('_jsonp_master');
-          if (script) script.remove();
+          const script = document.getElementById('_jsonp_master'); if (script) script.remove();
           try { delete window[callbackName]; } catch(e){}
         }
       };
-
       const script = document.createElement('script');
       script.id = '_jsonp_master';
       script.src = `${SCRIPT_URL}?action=list&callback=${callbackName}&_=${Date.now()}`;
-      script.onerror = function() {
-        document.getElementById('status').textContent = 'Failed to load live data (network or CORS error).';
-      };
+      script.onerror = function(){ document.getElementById('status').textContent = 'Failed to load live data.'; };
       document.head.appendChild(script);
     }
     document.getElementById('btnLive').addEventListener('click', loadLive);
 
-    // Initial render (sample)
+    // initial
     renderKPIs(filteredRows);
     renderTable(filteredRows);
-
-    // Auto-load live if SCRIPT_URL set
-    if (SCRIPT_URL) {
-      document.getElementById('status').textContent = 'Auto-loading live data…';
-      loadLive();
-    }
+    if (SCRIPT_URL) { document.getElementById('status').textContent = 'Auto-loading live data…'; loadLive(); }
   </script>
 </body>
 </html>
