@@ -1,19 +1,16 @@
-// api-feedback.js
-// Standalone JSONP API client focused on Feedback functionality only.
+// apiservice-feedback.js — fetch-based API client focused on Feedback functionality.
 // Usage: window.API.processForm(formData). Returns a Promise resolved with server response.
 
 (function () {
   class FeedbackApi {
     constructor(opts = {}) {
-      // Prefer CONFIG.SCRIPT_URL if available
       this.BASE_URL = (window.CONFIG && window.CONFIG.SCRIPT_URL) ? window.CONFIG.SCRIPT_URL : (opts.baseUrl || '');
       if (!this.BASE_URL) {
         console.warn('FeedbackApi: BASE_URL is empty. Set CONFIG.SCRIPT_URL or pass baseUrl option.');
       }
-
       this.debug = !!opts.debug;
       this.pendingRequests = new Map(); // dedupe concurrent identical requests
-      this.cache = new Map();           // optional caching
+      this.cache = new Map();
       this.cacheTtl = opts.cacheTtl || (2 * 60 * 1000); // 2 minutes default
       this.defaultTimeout = opts.timeout || 15000; // ms
     }
@@ -25,13 +22,13 @@
       try { return action + '|' + JSON.stringify(data || {}); } catch (e) { return action + '|' + String(data); }
     }
 
-    // JSONP request via script tag. Returns Promise resolved with server response.
-    request(action, data = {}, options = {}) {
+    // Generic request using fetch POST with JSON body { action, ...data }
+    async request(action, data = {}, options = {}) {
       const timeoutMs = options.timeout || this.defaultTimeout;
       const cacheKey = this._keyFor(action, data);
       const useCache = options.useCache !== false;
 
-      // Cache lookup
+      // cache lookup
       if (useCache && this.cache.has(cacheKey)) {
         const entry = this.cache.get(cacheKey);
         if ((Date.now() - entry.ts) < this.cacheTtl) {
@@ -42,73 +39,66 @@
         }
       }
 
-      // Deduplicate in-flight identical requests
+      // dedupe in-flight identical requests
       if (this.pendingRequests.has(cacheKey)) {
         this.log('dedupe pending', action);
         return this.pendingRequests.get(cacheKey);
       }
 
-      const promise = new Promise((resolve, reject) => {
+      const controller = new AbortController();
+      const signal = controller.signal;
+
+      const promise = new Promise(async (resolve, reject) => {
         if (!this.BASE_URL) {
           reject(new Error('API base URL not configured (CONFIG.SCRIPT_URL missing)'));
           return;
         }
 
-        const callbackName = '__fb_cb_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8);
-        let script = null;
-        let timeoutId = null;
+        const body = Object.assign({}, data);
+        body.action = action;
 
-        const cleanup = () => {
-          try { if (window[callbackName]) delete window[callbackName]; } catch(e) {}
-          try { if (script && script.parentNode) script.parentNode.removeChild(script); } catch(e){}
-          try { if (timeoutId) clearTimeout(timeoutId); } catch(e){}
-        };
-
-        timeoutId = setTimeout(() => {
-          cleanup();
-          reject(new Error('API request timeout (' + action + ')'));
+        const timer = setTimeout(() => {
+          controller.abort();
         }, timeoutMs);
 
-        window[callbackName] = (resp) => {
-          cleanup();
-          this.log('jsonp callback', action, resp);
-          if (!resp) {
-            reject(new Error('Empty response'));
-            return;
-          }
-          if (resp && resp.success === false) {
-            reject(new Error(resp.error || 'Server reported failure'));
-            return;
-          }
-          try { this.cache.set(cacheKey, { value: resp, ts: Date.now() }); } catch(e) {}
-          resolve(resp);
-        };
-
         try {
-          const urlObj = new URL(this.BASE_URL);
-          urlObj.searchParams.append('action', action);
-          if (data && Object.keys(data).length) {
-            urlObj.searchParams.append('data', JSON.stringify(data));
+          const res = await fetch(this.BASE_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            mode: 'cors',
+            credentials: 'omit',
+            body: JSON.stringify(body),
+            signal
+          });
+          clearTimeout(timer);
+          if (!res.ok) {
+            const text = await res.text().catch(()=>null);
+            reject(new Error('Network error: ' + res.status + (text ? (' - ' + text) : '')));
+            return;
           }
-          urlObj.searchParams.append('callback', callbackName);
-          if (options.forceNoCache) urlObj.searchParams.append('_', Date.now().toString(36));
+          const json = await res.json().catch(async (err) => {
+            const text = await res.text().catch(()=>null);
+            throw new Error('Invalid JSON response' + (text ? (': ' + text) : ''));
+          });
 
-          const fullUrl = urlObj.toString();
-          script = document.createElement('script');
-          script.src = fullUrl;
-          script.async = true;
-          script.onerror = function () {
-            cleanup();
-            reject(new Error('Network error loading JSONP script (' + action + ')'));
-          };
+          this.log('fetch response', action, json);
+          if (json && json.success === false) {
+            reject(new Error(json.error || 'Server reported failure'));
+            return;
+          }
 
-          document.head.appendChild(script);
+          try { this.cache.set(cacheKey, { value: json, ts: Date.now() }); } catch(e){}
+          resolve(json);
         } catch (err) {
-          cleanup();
-          reject(err);
+          if (err.name === 'AbortError') {
+            reject(new Error('API request timeout (' + action + ')'));
+          } else {
+            reject(err);
+          }
         }
       });
 
+      // store pending and cleanup after done
       this.pendingRequests.set(cacheKey, promise);
       promise.finally(() => this.pendingRequests.delete(cacheKey));
       return promise;
@@ -125,12 +115,12 @@
       return this.request('processForm', { formData: formData }, options);
     }
 
-    // Get list of feedbacks; server may return array or { success: true, rows: [...] }
+    // Get list of feedbacks - server should accept action='list' and return array
     async listFeedbacks(options = {}) {
       return this.request(options.action || 'list', {}, options);
     }
 
-    // Check a submission by id
+    // Check submission
     async checkSubmission(submissionId, options = {}) {
       return this.request('checkSubmission', { submissionId: submissionId }, options);
     }
@@ -146,7 +136,7 @@
     }
 
     // Convenience alias
-    jsonp(action, data = {}, options = {}) {
+    json(action, data = {}, options = {}) {
       return this.request(action, data, options);
     }
   }
