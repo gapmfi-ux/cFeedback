@@ -172,10 +172,10 @@ table.feedbacks tbody tr:hover { background: #f7fbff; }
 
 /* column widths */
 .col-timestamp { width: 12%; min-width: 90px; }
-.col-overall, .col-quality, .col-timeliness, .col-friendliness, .col-speed, .col-recommend { width: 6%; min-width: 40px; text-align:center; }
+.col-overall, .col-quality, .col-timeliness, .col-friendliness, .col-speed, .col-recommend { width: 8%; min-width: 40px; text-align:center; }
 .col-name { width: 12%; min-width: 90px; }
 .col-phone { width: 8%; min-width: 70px; }
-.col-comments { width: 38%; min-width: 160px; }
+.col-comments { width: 38%; min-width: 130px; }
 
 /* comments preserve paragraphs & line breaks */
 td.comments-cell { white-space: pre-wrap; }
