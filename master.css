@@ -88,7 +88,7 @@ table.feedbacks tbody td {
 /* narrow numeric columns */
 .col-timestamp { width: 8%; min-width: 70px; }
 .col-overall, .col-quality, .col-timeliness, .col-friendliness, .col-speed, .col-recommend { width: 6%; min-width: 40px; text-align:center; }
-.col-name { width: 12%; min-width: 90px; }
+.col-name { width: 15%; min-width: 100px; }
 .col-phone { width: 8%; min-width: 70px; }
 .col-comments { width: 38%; min-width: 160px; }
 
