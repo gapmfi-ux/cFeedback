@@ -183,11 +183,12 @@
         const dateTitle = escapeHtml(formatTimestamp(r.Timestamp));
         const dateText = escapeHtml(formatDate(r.Timestamp));
 
-        // Preserve paragraphs/newlines for name and comments
-        const nameRaw = r['Name'] || '';
-        const commentsRaw = r['Additional Comments'] || '';
+        // Name: collapse whitespace and DO NOT convert newlines into paragraphs
+        const nameRaw = (r['Name'] || '').replace(/\r?\n/g, ' ').replace(/\s+/g, ' ').trim();
+        const nameHtml = escapeHtml(nameRaw);
 
-        const nameHtml = escapeHtml(nameRaw).replace(/\r?\n/g, '<br>');
+        // Comments: preserve paragraphs / line breaks
+        const commentsRaw = r['Additional Comments'] || '';
         const commentsHtml = escapeHtml(commentsRaw).replace(/\r?\n/g, '<br>');
 
         const tr = document.createElement('tr');
@@ -207,7 +208,7 @@
         tbody.appendChild(tr);
       });
 
-      // reattach row click handlers and phone copy handlers (unchanged)
+      // attach event handlers (unchanged)
       Array.from(tbody.querySelectorAll('tr')).forEach(tr => {
         tr.addEventListener('click', (e) => {
           const idx = Number(tr.dataset.idx);
@@ -233,6 +234,7 @@
         });
       });
     }
+    
     const modalBackdrop = document.getElementById('modalBackdrop');
     function openModal(item) {
       if (!item) return;
