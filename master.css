@@ -3,7 +3,7 @@
    - container card with shadow
    - accent header band + colored KPI cards
    - stronger table header + zebra rows
-   - preserved wrapping/clamping and modal rules
+   - service-card stat numbers made more prominent (bold + larger)
 */
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -111,13 +111,38 @@ body {
 
 /* service average cards */
 .service-averages { display:flex; gap:10px; flex-wrap:wrap; margin:10px 0; }
+
+/* Service card updated to make stat prominent */
 .service-card {
   background: linear-gradient(180deg,#ffffff,#fbfdff);
   border:1px solid rgba(16,32,58,0.03);
   padding:10px 12px; border-radius:10px; min-width:120px; flex:1 1 140px;
   box-shadow: 0 6px 16px rgba(26,35,126,0.02);
+  display:flex;
+  flex-direction: column;
+  gap:8px;
 }
-.service-card .title { font-weight:700; color:#15324a; font-size:13px; margin-bottom:6px; }
+.service-card .title { font-weight:700; color:#15324a; font-size:13px; margin-bottom:0; }
+
+/* Stat row with larger, bold stat value (made prominent per request) */
+.service-card .stat-row {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+}
+.service-card .stat-val {
+  font-size: 18px;           /* bigger */
+  font-weight: 900;          /* very bold */
+  color: #0b1a33;            /* dark color for contrast */
+  letter-spacing: -0.2px;
+}
+.service-card .stat-count {
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* progress bar */
 .bar-bg { height:8px; background:#eef6fb; border-radius:999px; overflow:hidden; }
 .bar-fill { height:8px; background: linear-gradient(90deg,#6b46c1,#10b981); width:0%; border-radius:999px; }
 
@@ -150,7 +175,7 @@ table.feedbacks thead th {
   white-space: normal; word-break: break-word;
 }
 
-/* clamp header label to two lines (wrapper in HTML) */
+/* clamp header label to two lines */
 table.feedbacks thead th .th-label {
   display: -webkit-box;
   -webkit-line-clamp: 2;
