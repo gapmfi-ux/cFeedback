@@ -180,23 +180,34 @@
       const tbody = document.getElementById('tableBody');
       tbody.innerHTML = '';
       rows.forEach((r, idx) => {
+        const dateTitle = escapeHtml(formatTimestamp(r.Timestamp));
+        const dateText = escapeHtml(formatDate(r.Timestamp));
+
+        // Preserve paragraphs/newlines for name and comments
+        const nameRaw = r['Name'] || '';
+        const commentsRaw = r['Additional Comments'] || '';
+
+        const nameHtml = escapeHtml(nameRaw).replace(/\r?\n/g, '<br>');
+        const commentsHtml = escapeHtml(commentsRaw).replace(/\r?\n/g, '<br>');
+
         const tr = document.createElement('tr');
         tr.dataset.idx = idx;
         tr.innerHTML = `
-          <td title="${escapeHtml(formatTimestamp(r.Timestamp))}">${escapeHtml(formatDate(r.Timestamp))}</td>
+          <td title="${dateTitle}">${dateText}</td>
           <td style="text-align:center">${escapeHtml(r['Overall Satisfaction'] || '')}</td>
           <td style="text-align:center">${escapeHtml(r['Quality of Service'] || '')}</td>
           <td style="text-align:center">${escapeHtml(r['Timeliness'] || '')}</td>
           <td style="text-align:center">${escapeHtml(r['Staff Friendliness'] || '')}</td>
           <td style="text-align:center">${escapeHtml(r['Speed of Service'] || '')}</td>
           <td style="text-align:center">${escapeHtml(r['Recommend (1-5)'] || '')}</td>
-          <td>${escapeHtml(r['Name'] || '')}</td>
+          <td class="name-cell">${nameHtml}</td>
           <td class="phone-cell">${escapeHtml(r['Phone'] || '')}</td>
-          <td class="comments-cell" title="${escapeHtml(r['Additional Comments'] || '')}">${escapeHtml(r['Additional Comments'] ? (r['Additional Comments'].slice(0,200)) : '')}${(r['Additional Comments'] && r['Additional Comments'].length>200)?'…':''}</td>
+          <td class="comments-cell" title="${escapeHtml(commentsRaw)}">${commentsHtml}</td>
         `;
         tbody.appendChild(tr);
       });
 
+      // reattach row click handlers and phone copy handlers (unchanged)
       Array.from(tbody.querySelectorAll('tr')).forEach(tr => {
         tr.addEventListener('click', (e) => {
           const idx = Number(tr.dataset.idx);
@@ -222,7 +233,6 @@
         });
       });
     }
-
     const modalBackdrop = document.getElementById('modalBackdrop');
     function openModal(item) {
       if (!item) return;
