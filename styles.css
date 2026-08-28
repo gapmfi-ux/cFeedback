@@ -1,4 +1,8 @@
-/* Mobile-first styles.css (optimized for phones/tablets; form container stays narrow on desktop) */
+/* Mobile-first styles.css for the feedback form page
+   - Increased rating label size
+   - Reduced checked-tick size and repositioned it
+   - Removed any master page/table styles (master.css should handle master.html)
+*/
 
 /* Reset */
 * {
@@ -21,12 +25,11 @@ body {
 }
 
 /* Main content container (mobile-first, compact) */
-/* KEEP this max-width small so the form doesn't expand to master width */
 .container {
   background: #ffffff;
   border-radius: 12px;
   width: 100%;
-  max-width: 600px; /* fixed: form container stays at this width */
+  max-width: 600px;
   padding: 16px;
   margin: 18px 0;
   box-shadow: 0 12px 36px rgba(0,0,0,0.18);
@@ -151,27 +154,32 @@ body {
   transform: scale(1.06);
   box-shadow: 0 8px 20px rgba(26,35,126,0.18);
 }
+
+/* Reduced check/tick indicator size and repositioned */
 .rating-option input[type="radio"]:checked + .rating-circle::after {
   content: '✓';
   position: absolute;
-  top: -6px;
-  right: -6px;
-  width: 18px;
-  height: 18px;
+  top: -4px;           /* moved closer to circle edge */
+  right: -4px;         /* moved closer to circle edge */
+  width: 14px;         /* reduced size */
+  height: 14px;        /* reduced size */
   background: #10b981;
   color: #fff;
   border-radius: 50%;
-  font-size: 11px;
+  font-size: 10px;     /* smaller font to fit new size */
   display:flex;
   align-items:center;
   justify-content:center;
   border: 2px solid #fff;
 }
+
+/* Larger, more visible rating labels (increased per request) */
 .rating-label {
-  font-size: 11px;
+  font-size: 13px;    /* increased from 11px to 13px */
   color: #6b7280;
   text-align: center;
   min-height: 16px;
+  line-height: 1.1;
 }
 
 /* Inputs, Textarea and phone */
@@ -236,15 +244,8 @@ input:focus, textarea:focus {
 /* Footer */
 .footer { text-align: center; margin-top: 12px; color: #94a3b8; font-size: 13px; }
 
-/* Master page defaults (kept minimal here; master.css holds full master styles) */
+/* Logo inline (kept minimal) */
 .logo-inline { width: 120px; height: auto; display:block; margin: 0 auto 10px; }
-
-/* Table small-screen tweaks (master.html will load master.css for desktop specifics) */
-.table-wrap { overflow-x: auto; margin-top: 10px; }
-table.feedbacks { width: 100%; border-collapse: collapse; font-size: 13px; }
-table.feedbacks th, table.feedbacks td { padding: 8px; border: 1px solid #eef2f7; text-align: left; vertical-align: top; }
-table.feedbacks th { background: #fbfdff; color: #2d3748; font-weight: 700; font-size: 13px; white-space: normal; word-break: break-word; }
-table.feedbacks td { font-size: 13px; line-height: 1.2; }
 
 /* Utility and accessibility */
 .hidden { display:none !important; }
@@ -253,14 +254,13 @@ table.feedbacks td { font-size: 13px; line-height: 1.2; }
 .rating-group::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 6px; }
 
 /* Larger screens (tablet/desktop) */
-/* NOTE: do NOT change .container max-width here; master page uses .master-container for wide layout */
 @media (min-width: 769px) {
   body { padding: 20px; align-items: center; }
-  .container { padding: 22px 28px; border-radius: 14px; } /* keep max-width: 680px */
+  .container { padding: 22px 28px; border-radius: 14px; }
   .header h1 { font-size: 20px; }
   .header p { font-size: 14px; }
   .logo { width: 140px; }
-  /* make rating circles a bit smaller for desktop density */
+  /* slightly smaller circles on desktop to increase density */
   .rating-circle { width: 46px; height: 46px; font-size: 16px; }
   .rating-option { min-width: 56px; }
   textarea { min-height: 120px; }
@@ -270,11 +270,12 @@ table.feedbacks td { font-size: 13px; line-height: 1.2; }
 
 /* Very large screens (desktop wide) */
 @media (min-width: 1200px) {
-  .container { padding: 28px; } /* still keep max-width: 680px */
+  .container { padding: 28px; }
   .logo { width: 160px; }
   .rating-circle { width: 48px; height: 48px; }
 }
-/* Modal styles for form.html */
+
+/* Modal styles for form.html (kept here) */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -293,6 +294,7 @@ table.feedbacks td { font-size: 13px; line-height: 1.2; }
   box-shadow: 0 20px 60px rgba(0,0,0,0.25);
 }
 .modal h3 { margin: 0 0 8px 0; }
+
 /* Submission overlay + spinner */
 .overlay-backdrop {
   position: fixed;
@@ -321,4 +323,3 @@ table.feedbacks td { font-size: 13px; line-height: 1.2; }
   margin: 0 auto;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-
