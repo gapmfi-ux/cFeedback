@@ -1,8 +1,22 @@
-/* master.css — header labels limited to two wrapped lines, smaller header font, names not paragraphed */
+/* master.css — full, self-contained styles for master monitor
+   - global .btn/.btn.secondary styles added
+   - modal/backdrop fixed to display properly
+   - headers clamp to 2 lines, comments preserve paragraphs
+*/
 
 * { box-sizing: border-box; margin: 0; }
-body { background: #f4f7fc; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif; margin: 0; padding: 16px; }
+html,body { height: 100%; }
+body {
+  background: #f4f7fc;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  margin: 0;
+  padding: 16px;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  color: #0f172a;
+}
 
+/* Page container */
 .master-container {
   max-width: 980px;
   width: 100%;
@@ -12,20 +26,70 @@ body { background: #f4f7fc; font-family: system-ui, -apple-system, 'Segoe UI', R
   border-radius: 14px;
   box-shadow: 0 10px 30px rgba(0, 20, 30, 0.04);
   font-size: 13px;
-  color: #0f172a;
 }
 
-/* header */
+/* Header */
 .header { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; margin-bottom: 12px; }
 .header h1 { font-size: 18px; font-weight: 700; margin: 0; }
 .header .muted { color: #475569; font-size: 13px; }
 
-/* top actions */
+/* ------------------------------
+   Global button styles (fixes missing button CSS)
+   ------------------------------ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px;
+  min-height: 36px;
+  border-radius: 10px;
+  border: none;
+  background: #1a237e;
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 120ms ease, transform 120ms ease, box-shadow 120ms ease;
+  text-decoration: none;
+  line-height: 1;
+}
+.btn:hover { background: #0f1a5e; transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+.btn:focus { outline: 3px solid rgba(26,35,126,0.14); outline-offset: 2px; box-shadow: 0 4px 14px rgba(26,35,126,0.08); }
+
+/* Secondary (light) buttons */
+.btn.secondary,
+button.btn.secondary {
+  background: #ffffff;
+  color: #1a237e;
+  border: 1px solid #dce5ef;
+  font-weight: 600;
+}
+.btn.secondary:hover { background: #f2f6fd; border-color: #b0c5dd; }
+
+/* Small icon-only buttons variant (if needed) */
+.btn.icon {
+  padding: 6px 8px;
+  border-radius: 8px;
+  min-width: 36px;
+  min-height: 36px;
+}
+
+/* ------------------------------
+   Top actions (keeps layout, but uses global .btn)
+   ------------------------------ */
 .top-actions {
-  display: flex; flex-wrap: wrap; gap: 10px;
-  align-items: center; justify-content: space-between;
-  background: #f9fcff; padding: 10px; border-radius: 12px;
-  margin-bottom: 12px; border: 1px solid #e9f0f8;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  background: #f9fcff;
+  padding: 10px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  border: 1px solid #e9f0f8;
 }
 .top-actions .left, .top-actions .right { display:flex; gap:8px; align-items:center; }
 .top-actions label { font-size:13px; color:#1e293b; }
@@ -33,43 +97,58 @@ body { background: #f4f7fc; font-family: system-ui, -apple-system, 'Segoe UI', R
   padding:6px 10px; border-radius:8px; border:1px solid #dce5ef; background:white; font-size:13px;
 }
 
-/* KPI row */
+/* ------------------------------
+   KPIs & service averages
+   ------------------------------ */
 .kpi-row { display:grid; grid-template-columns: repeat(auto-fit, minmax(120px,1fr)); gap:10px; margin-bottom:10px; }
 .kpi { background:#fafdff; padding:10px; border-radius:10px; border:1px solid #eef5fc; text-align:center; }
 .kpi .small { font-size:12px; color:#475569; }
 .kpi .num { font-size:20px; font-weight:800; color:#1a237e; }
 
-/* service averages */
 .service-averages { display:flex; gap:10px; flex-wrap:wrap; margin:8px 0 12px; }
 .service-card { background:#fff; border:1px solid #ecf3fa; padding:10px 12px; border-radius:12px; min-width:120px; flex:1 1 140px; }
 .service-card .title { font-weight:600; font-size:13px; color:#1e293b; }
 
-/* table wrapper */
+/* ------------------------------
+   Table area
+   ------------------------------ */
 .table-wrap {
-  overflow-y: auto; overflow-x: hidden;
-  margin-top: 12px; border-radius: 10px;
-  border: 1px solid #e6edf6; max-height: 520px; background:#fff;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin-top: 12px;
+  border-radius: 10px;
+  border: 1px solid #e6edf6;
+  max-height: 520px;
+  background:#fff;
 }
 
-/* fixed table layout so percentages work and text wraps */
+/* table fixed layout so widths are predictable; cells wrap */
 table.feedbacks {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
   table-layout: fixed;
+  min-width: 700px;
 }
 
-/* header: smaller font, allow wrap, clamp to 2 lines */
+/* header: small font, allow wrap, clamp to 2 lines */
 table.feedbacks thead th {
-  position: sticky; top: 0; z-index: 5;
-  background: #f9fcff; padding: 8px 10px;
-  text-align: left; border-bottom: 2px solid #e2ecf9;
-  font-weight: 700; font-size: 11px;           /* reduced font size */
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: #f9fcff;
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 2px solid #e2ecf9;
+  font-weight: 700;
+  font-size: 11px;           /* reduced font size */
   color: #1a2b44;
-  white-space: normal; word-break: break-word; line-height:1.05;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.05;
 }
 
-/* clamp header label to two lines using a label wrapper */
+/* .th-label wrapper limits to two lines (clamp for modern browsers) */
 table.feedbacks thead th .th-label {
   display: -webkit-box;
   -webkit-line-clamp: 2;      /* show at most 2 lines */
@@ -78,14 +157,20 @@ table.feedbacks thead th .th-label {
   line-height: 1.05;
 }
 
-/* cell styling */
+/* table body cells */
 table.feedbacks tbody td {
-  padding: 8px 10px; border-bottom:1px solid #ecf3fa;
-  vertical-align: top; color: #0f1a2f;
-  white-space: normal; word-break: break-word;
+  padding: 8px 10px;
+  border-bottom: 1px solid #ecf3fa;
+  vertical-align: top;
+  color: #0f1a2f;
+  white-space: normal;
+  word-break: break-word;
 }
 
-/* narrow numeric columns */
+/* minimal row hover */
+table.feedbacks tbody tr:hover { background: #f7fbff; }
+
+/* column widths */
 .col-timestamp { width: 12%; min-width: 90px; }
 .col-overall, .col-quality, .col-timeliness, .col-friendliness, .col-speed, .col-recommend { width: 6%; min-width: 40px; text-align:center; }
 .col-name { width: 12%; min-width: 90px; }
@@ -95,13 +180,13 @@ table.feedbacks tbody td {
 /* comments preserve paragraphs & line breaks */
 td.comments-cell { white-space: pre-wrap; }
 
-/* names: do not preserve paragraph breaks; wrap normally and collapse whitespace */
+/* names: collapse whitespace, do not preserve paragraph breaks (render as single-line wrap) */
 td.name-cell { white-space: normal; word-break: break-word; }
 
-/* phone */
+/* phone styling */
 td.phone-cell { color:#1a237e; text-decoration:underline; cursor:pointer; }
 
-/* responsiveness */
+/* small responsive tweaks */
 @media (max-width: 900px) {
   .master-container { padding:12px; }
   .col-timestamp { width: 14%; }
@@ -109,9 +194,65 @@ td.phone-cell { color:#1a237e; text-decoration:underline; cursor:pointer; }
   .table-wrap { max-height: 420px; }
 }
 
-/* print */
+/* ------------------------------
+   Modal & backdrop (ensure proper centering + high z-index)
+   ------------------------------ */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;                     /* top/right/bottom/left:0 */
+  display: none;                /* JS will set style.display = 'flex' */
+  align-items: center;
+  justify-content: center;
+  background: rgba(10,20,40,0.45);
+  z-index: 9999;
+  padding: 18px;
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+
+/* When displayed via JS: style.display = 'flex' will activate centering rules above */
+/* Add a simple fade animation when shown via inline style change */
+.modal-backdrop .modal {
+  transform: translateY(0);
+  opacity: 1;
+  transition: transform 160ms ease, opacity 160ms ease;
+}
+
+.modal {
+  background: #ffffff;
+  padding: 20px 22px;
+  border-radius: 14px;
+  max-width: 760px;
+  width: 100%;
+  max-height: 80vh;
+  overflow: auto;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.18);
+  border: 1px solid rgba(0,0,0,0.03);
+}
+
+/* modal header/title */
+.modal h3 { font-size: 18px; font-weight: 700; margin: 0 0 12px; color:#0b1a33; }
+
+/* modal actions */
+.modal .modal-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
+.modal .btn.secondary { padding: 6px 12px; border-radius: 8px; font-weight:600; }
+
+/* ------------------------------
+   Status and small helpers
+   ------------------------------ */
+#status { font-size: 14px; color: #475569; padding: 6px 0; }
+
+/* ------------------------------
+   Print rules: show only table-wrap
+   ------------------------------ */
 @media print {
   body * { visibility: hidden; }
   .table-wrap, .table-wrap * { visibility: visible; }
   .table-wrap { position: absolute; left: 0; top: 0; width: 100%; height: auto; border: none; border-radius: 0; }
+  .modal-backdrop { display: none !important; }
+}
+
+/* small fixes for legacy browsers */
+@supports not (-webkit-line-clamp: 2) {
+  table.feedbacks thead th .th-label { max-height: 2.4em; overflow: hidden; }
 }
